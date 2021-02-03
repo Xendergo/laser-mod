@@ -1,6 +1,7 @@
 package net.fabricmc.LaserMod;
 
 import net.fabricmc.LaserMod.blocks.Lens;
+import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
@@ -13,6 +14,7 @@ import net.minecraft.util.registry.Registry;
 
 public class LaserMod implements ModInitializer {
 	public static final Block Lens = new Lens();
+	public static final Block Laser = new Laser();
 	
 	@Override
 	public void onInitialize() {
@@ -25,5 +27,9 @@ public class LaserMod implements ModInitializer {
 		Registry.register(Registry.BLOCK, new Identifier("lasermod", "lens"), Lens);
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "lens"), new BlockItem(Lens, new FabricItemSettings().group(ItemGroup.REDSTONE)));
 		BlockRenderLayerMap.INSTANCE.putBlock(Lens, RenderLayer.getCutout());
+
+		Registry.register(Registry.BLOCK, new Identifier("lasermod", "laser"), Laser);
+		Registry.register(Registry.ITEM, new Identifier("lasermod", "laser"), new BlockItem(Laser, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+		BlockRenderLayerMap.INSTANCE.putBlock(Laser, RenderLayer.getCutout());
 	}
 }
