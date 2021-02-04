@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [],
   "client": [
-    "ExampleMixin"
+    "ComparatorPower"
   ],
   "injectors": {
     "defaultRequire": 1

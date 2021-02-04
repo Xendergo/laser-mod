@@ -23,7 +23,7 @@
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "lasermod.mixins.json"
   ],
 
   "depends": {
