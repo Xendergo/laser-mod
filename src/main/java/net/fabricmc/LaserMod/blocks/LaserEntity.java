@@ -46,7 +46,8 @@ public class LaserEntity extends BlockEntity {
     λ = newΛ;
     p = newP;
 
-    System.out.println(λ);
+    System.out.print(λ);
+    System.out.print(", ");
     System.out.println(p);
   }
 }

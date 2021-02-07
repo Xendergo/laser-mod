@@ -1,11 +1,16 @@
 package net.fabricmc.LaserMod.blocks;
 
+import javax.swing.text.html.BlockView;
+
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
@@ -16,7 +21,7 @@ import net.minecraft.world.World;
 
 public class Laser extends Block implements BlockEntityProvider {
   public Laser() {
-    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque());
+    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque().solidBlock((a, b, c) -> {return false;}));
     setDefaultState(this.stateManager.getDefaultState().with(Properties.FACING, Direction.NORTH));
   }
 
@@ -41,9 +46,9 @@ public class Laser extends Block implements BlockEntityProvider {
       int newPower = 0;
   
       for (int i = directions.length-1; i >= 0; i--) {
-        int power = world.getEmittedRedstonePower(pos, directions[i]);
         BlockPos neighborPos = pos.offset(directions[i], -1);
         BlockState blockState = world.getBlockState(neighborPos);
+        int power = world.getEmittedRedstonePower(neighborPos, directions[i].getOpposite());
   
         if (Registry.BLOCK.getId(blockState.getBlock()).toString().equals("minecraft:comparator")) {
           // Set the frequency
@@ -63,4 +68,5 @@ public class Laser extends Block implements BlockEntityProvider {
   public BlockEntity createBlockEntity(net.minecraft.world.BlockView world) {
     return new LaserEntity();
   }
+
 }
