@@ -4,9 +4,7 @@
   "package": "net.fabricmc.LaserMod.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [],
-  "client": [
-    "ComparatorPower"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }
