@@ -21,17 +21,19 @@ import net.minecraft.world.World;
 
 public class Laser extends Block implements BlockEntityProvider {
   public Laser() {
-    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque().solidBlock((a, b, c) -> {return false;}));
-    setDefaultState(this.stateManager.getDefaultState().with(Properties.FACING, Direction.NORTH));
+    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque().luminance((state) -> (Boolean)state.get(Properties.LIT) ? 15 : 0).solidBlock((a, b, c) -> false));
+    setDefaultState(this.stateManager.getDefaultState().with(Properties.FACING, Direction.NORTH).with(Properties.LIT, false));  
   }
 
   public BlockState getPlacementState(ItemPlacementContext ctx) {
-    return (BlockState)this.getDefaultState().with(Properties.FACING, ctx.getPlayerLookDirection());
+    BlockState state = (BlockState)this.getDefaultState().with(Properties.FACING, ctx.getPlayerLookDirection());
+    return state;
   }
 
   @Override
   protected void appendProperties(StateManager.Builder<Block, BlockState> stateManager) {
     stateManager.add(Properties.FACING);
+    stateManager.add(Properties.LIT);
   }
 
   public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
@@ -60,6 +62,7 @@ public class Laser extends Block implements BlockEntityProvider {
       }
       
       // Update the power & frequency
+      world.setBlockState(pos, (BlockState)state.with(Properties.LIT, newPower != 0), 2);
       laserEntity.updateLaserData(newFreq, newPower);
     }
   }
@@ -69,4 +72,7 @@ public class Laser extends Block implements BlockEntityProvider {
     return new LaserEntity();
   }
 
+  public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+    world.updateNeighbor(pos, this, pos);
+  }
 }
