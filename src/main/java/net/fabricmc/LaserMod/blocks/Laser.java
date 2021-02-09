@@ -1,16 +1,11 @@
 package net.fabricmc.LaserMod.blocks;
 
-import javax.swing.text.html.BlockView;
-
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
@@ -73,6 +68,7 @@ public class Laser extends Block implements BlockEntityProvider {
   }
 
   public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
+    // Update when the block is placed
     world.updateNeighbor(pos, this, pos);
   }
 }

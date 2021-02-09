@@ -11,7 +11,7 @@ import net.minecraft.util.math.Direction;
 
 public class Lens extends Block {
   public Lens() {
-    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque());
+    super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque().solidBlock((a, b, c) -> false));
     setDefaultState(this.stateManager.getDefaultState().with(Properties.FACING, Direction.NORTH));
   }
 

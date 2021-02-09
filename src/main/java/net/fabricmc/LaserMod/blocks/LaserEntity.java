@@ -1,12 +1,19 @@
 package net.fabricmc.LaserMod.blocks;
 
 import net.fabricmc.LaserMod.LaserMod;
-import net.minecraft.block.BlockEntityProvider;
+import net.fabricmc.LaserMod.LaserStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
-public class LaserEntity extends BlockEntity {
+public class LaserEntity extends BlockEntity implements Tickable {
   /* Using λ for wavelength
   [0-1): microwave
   [1-2): infrared
@@ -45,9 +52,49 @@ public class LaserEntity extends BlockEntity {
   public void updateLaserData(float newΛ, float newP) {
     λ = newΛ;
     p = newP;
-
-    System.out.print(λ);
-    System.out.print(", ");
-    System.out.println(p);
   }
+
+  public void tick() {
+    if (world.isClient()) return;
+
+    if (p != 0) {
+      marchLaser(this.pos, this.world.getBlockState(this.pos).get(Properties.FACING), p);
+    }
+  }
+
+  public void marchLaser(BlockPos pos, Direction dir, float power) {
+    BlockState blockState = world.getBlockState(pos);
+    power += 0.25;
+    boolean start = true;
+
+    while (!blockState.isSolidBlock(world, pos) && world.isChunkLoaded(pos) && !World.isOutOfBuildLimitVertically(pos) && power > 0) {
+      power -= 0.25;
+      LaserStorage.setAtPos(pos, power, λ, dir, start, false);
+
+      if (start) start = false;
+
+      ((ServerWorld)world).spawnParticles(ParticleTypes.END_ROD, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, (int)power, 0.125, 0.125, 0.125, 0);
+
+      pos = pos.offset(dir, 1);
+      blockState = world.getBlockState(pos);
+
+      if (blockState.getBlock() instanceof Lens) {
+        Direction facing = blockState.get(Properties.FACING);
+        if (dir.equals(facing.getOpposite())) {
+          for (int i = 0; i < 6; i++) {
+            if (!directions[i].equals(facing)) {
+              marchLaser(pos, directions[i], power/5);
+            }
+          }
+        } else {
+          marchLaser(pos, facing, power);
+        }
+        break;
+      }
+    }
+
+    LaserStorage.setAtPos(pos, power, λ, dir, false, true);
+  }
+
+  private static Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN};
 }

@@ -4,7 +4,9 @@
   "package": "net.fabricmc.LaserMod.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [],
-  "client": [],
+  "client": [
+    "ServerMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

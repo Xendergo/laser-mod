@@ -3,9 +3,12 @@ package net.fabricmc.LaserMod;
 import net.fabricmc.LaserMod.blocks.Lens;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
@@ -25,6 +28,12 @@ public class LaserMod implements ModInitializer {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
+
+		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+			ClientPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.LaserStorage, (client, handler, buf, responseSender) -> {
+				LaserStorageClient.processLaserData(buf.readIntArray());
+			});
+		}
 
 		System.out.println("Laser mod initialized, registering blocks");
 
