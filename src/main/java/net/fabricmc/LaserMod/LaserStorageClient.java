@@ -45,6 +45,7 @@ public class LaserStorageClient {
   }
 
   public static void processLaserData(int[] data) {
+    System.out.println("Received data");
     clear();
 
     int i = 0;
@@ -65,7 +66,5 @@ public class LaserStorageClient {
 
       lasers.put(key, toAdd);
     }
-
-    System.out.println(lasers);
   }
 }

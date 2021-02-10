@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [],
   "client": [
-    "ServerMixin"
+    "ServerMixin",
+    "PlayerMixin",
+    "PlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

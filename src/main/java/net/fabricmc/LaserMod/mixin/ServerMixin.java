@@ -5,7 +5,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.fabricmc.LaserMod.LaserStorage;
 import net.minecraft.server.MinecraftServer;
@@ -25,15 +24,8 @@ public abstract class ServerMixin {
   @Inject(at = @At("TAIL"), method = "tick")
   private void tickEnd(CallbackInfo info) {
     boolean changed = LaserStorage.checkChanged();
-    System.out.println(changed);
     if (changed) {
       LaserStorage.sendLaserData(getOverworld().getServer());
     }
-  }
-
-  // Remove unused entries in the laser data on autosave
-  @Inject(at = @At("HEAD"), method = "save")
-  private void save(CallbackInfoReturnable info) {
-    LaserStorage.removeUselessEntries();
   }
 }

@@ -10,6 +10,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.World;
 
 public class LaserStorage {
   /*
@@ -23,10 +25,12 @@ public class LaserStorage {
   Different lasers in the same block in the same direction are rendered once, with the color in the middle (allows for fine control of color by combining multiple lasers with a lens)
   */
 
-  public static HashMap<Long, ArrayList<int[]>> lasers = new HashMap<Long, ArrayList<int[]>>();
-  public static HashMap<Long, ArrayList<int[]>> pLasers = new HashMap<Long, ArrayList<int[]>>();
+  public static HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>> lasers = new HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>>();
+  public static HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>> pLasers = new HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>>();
 
-  public static void setAtPos(BlockPos pos, float p, float λ, Direction dir, boolean start, boolean end) {
+  public static void setAtPos(World world, BlockPos pos, float p, float λ, Direction dir, boolean start, boolean end) {
+    RegistryKey<World> regKey = world.getRegistryKey();
+
     int[] toSet = new int[3];
 
     toSet[0] = Float.floatToIntBits(p);
@@ -35,74 +39,111 @@ public class LaserStorage {
 
     long posLong = pos.asLong();
 
-    if (!lasers.containsKey(posLong)) {
-      lasers.put(posLong, new ArrayList<int[]>());
+    if (!lasers.containsKey(regKey)) {
+      lasers.put(regKey, new HashMap<Long, ArrayList<int[]>>());
+      pLasers.put(regKey, new HashMap<Long, ArrayList<int[]>>());
     }
 
-    lasers.get(posLong).add(toSet);
+    if (!lasers.get(regKey).containsKey(posLong)) {
+      lasers.get(regKey).put(posLong, new ArrayList<int[]>());
+    }
+
+    lasers.get(regKey).get(posLong).add(toSet);
   }
 
-  public static boolean laserAtPos(BlockPos pos) {
+  public static boolean laserAtPos(World world, BlockPos pos) {
     long posLong = pos.asLong();
 
-    if (!lasers.containsKey(posLong)) {
+    if (!lasers.get(world.getRegistryKey()).containsKey(posLong)) {
       return false;
     }
 
-    return lasers.get(posLong).size() > 0;
+    return lasers.get(world.getRegistryKey()).get(posLong).size() > 0;
   }
 
   public static void clear() {
-    // Remove excess memory in pLasers
-    for (long key : pLasers.keySet()) {
-      if (!lasers.containsKey(key)) pLasers.remove(key);
-    }
-
-    // Swap the lists to avoid reallocating anything
-    for (long key : lasers.keySet()) {
-      if (!pLasers.containsKey(key)) pLasers.put(key, new ArrayList<int[]>());
-
-      ArrayList<int[]> temp = pLasers.get(key);
-      temp.clear();
-
-      pLasers.put(key, lasers.get(key));
-
-      lasers.put(key, temp);
+    for (RegistryKey<World> regKey : lasers.keySet()) {
+      // Remove excess memory in pLasers
+      LinkedList<Long> toRemove = new LinkedList<Long>();
+      for (long key : pLasers.get(regKey).keySet()) {
+        if (!lasers.get(regKey).containsKey(key)) toRemove.add(key);
+      }
+  
+      for (long key : toRemove) {
+        pLasers.get(regKey).remove(key);
+      }
+  
+      // Swap the lists to avoid reallocating anything
+      for (long key : lasers.get(regKey).keySet()) {
+        if (!pLasers.get(regKey).containsKey(key)) pLasers.get(regKey).put(key, new ArrayList<int[]>());
+  
+        ArrayList<int[]> temp = pLasers.get(regKey).get(key);
+        temp.clear();
+  
+        pLasers.get(regKey).put(key, lasers.get(regKey).get(key));
+  
+        lasers.get(regKey).put(key, temp);
+      }
     }
   }
 
-  public static void removeUselessEntries() {
-    for (long key : lasers.keySet()) {
-      if (lasers.get(key).size() == 0) {
-        lasers.remove(key);
+  private static void removeUselessEntries() {
+    for (RegistryKey<World> regKey : lasers.keySet()) {
+      LinkedList<Long> toRemove = new LinkedList<Long>();
+      for (long key : lasers.get(regKey).keySet()) {
+        if (lasers.get(regKey).get(key).size() == 0) {
+          toRemove.add(key);
+        }
+      }
+
+      for (long key : toRemove) {
+        lasers.get(regKey).remove(key);
       }
     }
   }
 
   public static boolean checkChanged() {
-    Set<Long> keys = lasers.keySet();
-    Set<Long> pKeys = pLasers.keySet();
-    if (keys.containsAll(pKeys)) {
-      for (long key : keys) {
-        if (!lasers.get(key).equals(pLasers.get(key))) return true;
+    // System.out.println("Comparing");
+    Set<RegistryKey<World>> dims = lasers.keySet();
+    Set<RegistryKey<World>> pDims = lasers.keySet();
+
+    if (dims.containsAll(pDims) && pDims.containsAll(dims)) {
+      for (RegistryKey<World> regKey : dims) {
+        Set<Long> keys = lasers.get(regKey).keySet();
+        Set<Long> pKeys = pLasers.get(regKey).keySet();
+        if (keys.containsAll(pKeys) && pKeys.containsAll(keys)) {
+          for (long key : keys) {
+            ArrayList<int[]> list = lasers.get(regKey).get(key);
+            ArrayList<int[]> pList = pLasers.get(regKey).get(key);
+            if (list.size() == pList.size()) {
+              for (int i = list.size()-1; i >= 0; i--) {
+                if (!Arrays.equals(list.get(i), pList.get(i))) return true;
+              }
+            } else {
+              return true;
+            }
+          }
+        } else {
+          return true;
+        }
       }
 
       return false;
     }
-
+    
     return true;
   }
 
-  public static void sendLaserData(MinecraftServer server) {
+  private static PacketByteBuf generatePacketBuf(HashMap<Long, ArrayList<int[]>> laserData) {
     ArrayList<Integer> ints = new ArrayList<Integer>();
-    for (long key : lasers.keySet()) {
+    for (long key : laserData.keySet()) {
       ints.add((int)(key & 0xFFFFFFFF));
       ints.add((int)(key >> 32));
-      ints.add(lasers.get(key).size());
-      for (int[] laserData : lasers.get(key)) {
-        ints.add(laserData[0]);
-        ints.add(laserData[1]);
-        ints.add(laserData[2]);
+      ints.add(laserData.get(key).size());
+      for (int[] laserSectionData : laserData.get(key)) {
+        ints.add(laserSectionData[0]);
+        ints.add(laserSectionData[1]);
+        ints.add(laserSectionData[2]);
       }
     }
 
@@ -110,9 +151,33 @@ public class LaserStorage {
     PacketByteBuf buf = PacketByteBufs.create();
     buf.writeIntArray(Arrays.stream(ints.toArray(new Integer[ints.size()])).mapToInt(Integer::intValue).toArray());
 
-    for (ServerPlayerEntity player : PlayerLookup.all(server)) {
-      ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
+    return buf;
+  }
+
+  public static void sendLaserData(MinecraftServer server) {
+    removeUselessEntries();
+
+    for (RegistryKey<World> regKey : lasers.keySet()) {
+      PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
+
+      for (ServerPlayerEntity player : PlayerLookup.world(server.getWorld(regKey))) {
+        ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
+      }
     }
     System.out.println("Sending data");
+  }
+
+  public static void sendLaserData(ServerPlayerEntity player) {
+    RegistryKey<World> regKey = player.getServerWorld().getRegistryKey();
+
+    if (!lasers.containsKey(regKey)) {
+      lasers.put(regKey, new HashMap<Long, ArrayList<int[]>>());
+      pLasers.put(regKey, new HashMap<Long, ArrayList<int[]>>());
+    }
+
+    PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
+
+    System.out.println("Sending to player");
+    ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
   }
 }

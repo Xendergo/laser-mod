@@ -69,7 +69,7 @@ public class LaserEntity extends BlockEntity implements Tickable {
 
     while (!blockState.isSolidBlock(world, pos) && world.isChunkLoaded(pos) && !World.isOutOfBuildLimitVertically(pos) && power > 0) {
       power -= 0.25;
-      LaserStorage.setAtPos(pos, power, λ, dir, start, false);
+      LaserStorage.setAtPos(world, pos, power, λ, dir, start, false);
 
       if (start) start = false;
 
@@ -93,7 +93,7 @@ public class LaserEntity extends BlockEntity implements Tickable {
       }
     }
 
-    LaserStorage.setAtPos(pos, power, λ, dir, false, true);
+    LaserStorage.setAtPos(world, pos, power, λ, dir, false, true);
   }
 
   private static Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN};
