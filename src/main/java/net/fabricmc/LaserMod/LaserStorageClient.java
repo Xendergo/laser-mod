@@ -51,7 +51,7 @@ public class LaserStorageClient {
     int i = 0;
 
     while (i < data.length) {
-      long key = (long)data[i] + (((long)data[i+1]) << 32);
+      long key = ((long)data[i] << 32 >>> 32) | (((long)data[i+1]) << 32);
       i += 2;
       int length = data[i];
       i++;

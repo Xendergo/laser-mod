@@ -137,8 +137,9 @@ public class LaserStorage {
   private static PacketByteBuf generatePacketBuf(HashMap<Long, ArrayList<int[]>> laserData) {
     ArrayList<Integer> ints = new ArrayList<Integer>();
     for (long key : laserData.keySet()) {
+      System.out.println(Long.toHexString(key));
       ints.add((int)(key & 0xFFFFFFFF));
-      ints.add((int)(key >> 32));
+      ints.add((int)(key >>> 32));
       ints.add(laserData.get(key).size());
       for (int[] laserSectionData : laserData.get(key)) {
         ints.add(laserSectionData[0]);

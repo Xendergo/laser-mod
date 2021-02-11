@@ -2,6 +2,9 @@
 
 package net.fabricmc.LaserMod;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 
@@ -26,8 +29,11 @@ public class LaserRenderer {
   public static void render() {
     MinecraftClient mc = MinecraftClient.getInstance();
     if (mc.player != null) {
-      // drawRect(10, 100, 50, 50, 0xFFFFFFFF, 0);
-      drawLaser(new BlockPos(0, 100, 0), Direction.UP, 0xCCFF3333, mc, false, false);
+      for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
+        for (int[] laser : laserSet.getValue()) {
+          drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(laser[2] >> 2), 0xFFFFFF | ((int)Math.min(Float.intBitsToFloat(laser[0])*16, 255)) << 24, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
+        }
+      }
     }
   }
 

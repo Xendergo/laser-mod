@@ -73,8 +73,6 @@ public class LaserEntity extends BlockEntity implements Tickable {
 
       if (start) start = false;
 
-      ((ServerWorld)world).spawnParticles(ParticleTypes.END_ROD, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, (int)power, 0.125, 0.125, 0.125, 0);
-
       pos = pos.offset(dir, 1);
       blockState = world.getBlockState(pos);
 
