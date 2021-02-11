@@ -175,7 +175,7 @@ public class LaserRenderer {
       r = 255;
       g = 255;
       b = 255;
-      a = (int)remap(λ, 15, 16, 0, 255);
+      a = (int)remap(λ, 15, 16, 0, 128);
     } else if (λ > 14.25) {
 
     } else if (λ > 14) {

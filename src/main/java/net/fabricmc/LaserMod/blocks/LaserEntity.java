@@ -1,17 +1,22 @@
 package net.fabricmc.LaserMod.blocks;
 
+import net.fabricmc.LaserMod.LaserDamageSource;
 import net.fabricmc.LaserMod.LaserMod;
 import net.fabricmc.LaserMod.LaserStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 public class LaserEntity extends BlockEntity implements Tickable {
+  public static DamageSource Lased = LaserDamageSource.LASER_DAMAGE_SOURCE;
   /* Using λ for wavelength
   [0-1): microwave
   [1-2): infrared
@@ -48,7 +53,7 @@ public class LaserEntity extends BlockEntity implements Tickable {
   }
 
   public void updateLaserData(float newΛ, float newP) {
-    λ = newΛ;
+    λ = remap(newΛ, 0, 15, 0, 16);
     p = newP;
   }
 
@@ -74,6 +79,16 @@ public class LaserEntity extends BlockEntity implements Tickable {
       pos = pos.offset(dir, 1);
       blockState = world.getBlockState(pos);
 
+      java.util.List<LivingEntity> entitiesHit = world.getEntitiesByClass(LivingEntity.class, new Box(pos), (a) -> true);
+      if (entitiesHit.size() > 0) {
+        if (λ > 14) {
+          for (LivingEntity entity : entitiesHit) {
+            entity.damage(Lased, remap(λ, 14, 16, 0, 6) * remap(power, 0, 16, 0, 1));
+          }
+        }
+        break;
+      }
+
       if (blockState.getBlock() instanceof Lens) {
         Direction facing = blockState.get(Properties.FACING);
         if (dir.equals(facing.getOpposite())) {
@@ -90,6 +105,10 @@ public class LaserEntity extends BlockEntity implements Tickable {
     }
 
     LaserStorage.setAtPos(world, pos, power, λ, dir, false, true);
+  }
+
+  private static float remap(float v, float min1, float max1, float min2, float max2) {
+    return (v - min1) * (max2 - min2) / (max1 - min1) + min2;
   }
 
   private static Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN};
