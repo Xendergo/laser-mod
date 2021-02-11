@@ -5,8 +5,6 @@ import net.fabricmc.LaserMod.LaserStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;

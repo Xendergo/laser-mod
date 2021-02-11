@@ -31,7 +31,7 @@ public class LaserRenderer {
     if (mc.player != null) {
       for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
         for (int[] laser : laserSet.getValue()) {
-          drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(laser[2] >> 2), 0xFFFFFF | ((int)Math.min(Float.intBitsToFloat(laser[0])*16, 255)) << 24, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
+          drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(laser[2] >> 2), calcualteColor(laser[0], laser[1]), mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
         }
       }
     }
@@ -39,6 +39,8 @@ public class LaserRenderer {
 
   private static void drawLaser(BlockPos pos, Direction dir, int color, MinecraftClient mc, boolean start, boolean end) {
     if (start && end) return; // If it's both the start and end of a laser, something went terribly wrong
+
+    // System.out.println(Integer.toHexString(color));
 
     // If it's the end of a laser, reverse the direction and draw as if it's the start of a laser
     if (end) {
@@ -158,5 +160,100 @@ public class LaserRenderer {
   {
     RenderSystem.enableBlend();
     RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+  }
+
+  private static int calcualteColor(int powerBits, int λBits) {
+    float power = Float.intBitsToFloat(powerBits) / 16;
+    float λ = Float.intBitsToFloat(λBits);
+
+    int a = 0;
+    int r = 0;
+    int g = 0;
+    int b = 0;
+
+    if (λ > 15) {
+      r = 255;
+      g = 255;
+      b = 255;
+      a = (int)remap(λ, 15, 16, 0, 255);
+    } else if (λ > 14.25) {
+
+    } else if (λ > 14) {
+      r = 127;
+      g = 0;
+      b = 255;
+      a = (int)remap(λ, 14, 14.25F, 255, 0);
+    } else if (λ > 2) {
+      int[] colors = hslToRgb(remap(λ, 2, 14, 0, 0.75F), 1, 0.5F);
+      r = colors[0];
+      g = colors[1];
+      b = colors[2];
+      a = 255;
+    } else if (λ > 1.75) {
+      r = 255;
+      g = 0;
+      b = 0;
+      a = (int)remap(λ, 1.75F, 2, 0, 255);
+    } else if (λ > 1) {
+
+    } else {
+      r = 255;
+      g = 64;
+      b = 0;
+      a = (int)remap(λ, 0, 1, 128, 0);
+    }
+
+    if (power < 0) power = 0;
+
+    return (int)(a * power) << 24 | r << 16 | g << 8 | b;
+  }
+
+  private static float remap(float v, float min1, float max1, float min2, float max2) {
+    return (v - min1) * (max2 - min2) / (max1 - min1) + min2;
+  }
+
+   /**
+   * https://stackoverflow.com/questions/2353211/hsl-to-rgb-color-conversion
+   * 
+   * Converts an HSL color value to RGB. Conversion formula
+   * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+   * Assumes h, s, and l are contained in the set [0, 1] and
+   * returns r, g, and b in the set [0, 255].
+   *
+   * @param h       The hue
+   * @param s       The saturation
+   * @param l       The lightness
+   * @return int array, the RGB representation
+   */
+  private static int[] hslToRgb(float h, float s, float l){
+    float r, g, b;
+
+    if (s == 0f) {
+        r = g = b = l; // achromatic
+    } else {
+        float q = l < 0.5f ? l * (1 + s) : l + s - l * s;
+        float p = 2 * l - q;
+        r = hueToRgb(p, q, h + 1f/3f);
+        g = hueToRgb(p, q, h);
+        b = hueToRgb(p, q, h - 1f/3f);
+    }
+    int[] rgb = {to255(r), to255(g), to255(b)};
+    return rgb;
+  }
+  private static int to255(float v) { return (int)Math.min(255,256*v); }
+
+  /** Helper method that converts hue to rgb */
+  private static float hueToRgb(float p, float q, float t) {
+    if (t < 0f)
+        t += 1f;
+    if (t > 1f)
+        t -= 1f;
+    if (t < 1f/6f)
+        return p + (q - p) * 6f * t;
+    if (t < 1f/2f)
+        return q;
+    if (t < 2f/3f)
+        return p + (q - p) * (2f/3f - t) * 6f;
+    return p;
   }
 }
