@@ -15,19 +15,31 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Quaternion;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 
 public class LaserRenderer {
+  public static double laserWidth = 0.25;
+  private static double laserDist = (1 - laserWidth) / 2;
+
   public static void render() {
     MinecraftClient mc = MinecraftClient.getInstance();
     if (mc.player != null) {
       // drawRect(10, 100, 50, 50, 0xFFFFFFFF, 0);
-      drawLaser(new BlockPos(0, 100, 0), new BlockPos(1, 100, 0), 0xFFFFFFFF, mc);
+      drawLaser(new BlockPos(0, 100, 0), Direction.UP, 0xCCFF3333, mc, false, false);
     }
   }
 
-  private static void drawLaser(BlockPos start, BlockPos end, int color, MinecraftClient mc) {
-    
+  private static void drawLaser(BlockPos pos, Direction dir, int color, MinecraftClient mc, boolean start, boolean end) {
+    if (start && end) return; // If it's both the start and end of a laser, something went terribly wrong
+
+    // If it's the end of a laser, reverse the direction and draw as if it's the start of a laser
+    if (end) {
+      start = true;
+      dir = dir.getOpposite();
+    }
+
     RenderSystem.depthMask(false);
     RenderSystem.disableLighting();
     RenderSystem.disableCull();
@@ -39,76 +51,101 @@ public class LaserRenderer {
     float r = (float) (color >> 16 & 255) / 255.0F;
     float g = (float) (color >>  8 & 255) / 255.0F;
     float b = (float) (color & 255) / 255.0F;
+
     
-    RenderSystem.pushMatrix();
-    
-    MatrixStack matrixStackTemp = new MatrixStack();
+    color(r, g, b, a);
     
     Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+
+    Quaternion rotation = getRotation(dir);
     
-    double x = start.getX() + 0.5d - cameraPos.x;
-    double y = start.getY() + 0.5d - cameraPos.y;
-    double z = start.getZ() + 0.5d - cameraPos.z;
+    if (start) {
+      drawRect(new Vec3d(pos.getX() + laserDist + laserWidth, pos.getY() + laserDist, pos.getZ() + 0.5), new Vec2f(0.5F, (float)laserWidth), Direction.WEST, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() + laserDist, pos.getZ() + 0.5), new Vec2f(0.5F, (float)laserWidth), Direction.WEST, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() + laserDist, pos.getZ() + 0.5), new Vec2f((float)laserWidth, 0.5F), Direction.DOWN, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() - laserDist + 1, pos.getZ() + 0.5), new Vec2f((float)laserWidth, 0.5F), Direction.DOWN, cameraPos, rotation);
     
-    overlayTranslations(x, y, z, Direction.NORTH, mc.getCameraEntity().getHorizontalFacing(), matrixStackTemp);
-    RenderSystem.multMatrix(matrixStackTemp.peek().getModel());
-
-    Tessellator tessellator = Tessellator.getInstance();
-    BufferBuilder buffer = tessellator.getBuffer();
-
-    color(r, g, b, a);
-
-    buffer.begin(GL11.GL_QUADS, VertexFormats.POSITION);
-
-    buffer.vertex(x - 0.5, y - 0.5, z).next();
-    buffer.vertex(x + 0.5, y - 0.5, z).next();
-    buffer.vertex(x + 0.5, y + 0.5, z).next();
-    buffer.vertex(x - 0.5, y + 0.5, z).next();
-
-    tessellator.draw();
-
-    RenderSystem.popMatrix();
+      drawRect(new Vec3d(pos.getX() + laserDist + laserWidth, pos.getY() + laserDist, pos.getZ() + 0.5), new Vec2f((float)laserWidth, (float)laserWidth), Direction.NORTH, cameraPos, rotation);
+    } else {
+      drawRect(new Vec3d(pos.getX() - laserDist + 1, pos.getY() + laserDist, pos.getZ()), new Vec2f(1F, (float)laserWidth), Direction.WEST, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() + laserDist, pos.getZ()), new Vec2f(1F, (float)laserWidth), Direction.WEST, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() + laserDist, pos.getZ()), new Vec2f((float)laserWidth, 1F), Direction.DOWN, cameraPos, rotation);
+      drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() - laserDist + 1, pos.getZ()), new Vec2f((float)laserWidth, 1F), Direction.DOWN, cameraPos, rotation);
+    }
 
     RenderSystem.enableTexture();
     RenderSystem.disableBlend();
     RenderSystem.enableCull();
     RenderSystem.depthMask(true);
+  }
+  
+  private static void drawRect(Vec3d vertex1, Vec2f scale, Direction face, Vec3d cameraPos, Quaternion rotation) {
+    MatrixStack matrixStackTemp = new MatrixStack();
 
+    RenderSystem.pushMatrix();
+    
+    double x = vertex1.x - cameraPos.x;
+    double y = vertex1.y - cameraPos.y;
+    double z = vertex1.z - cameraPos.z;
+
+    double x2 = Math.floor(vertex1.x) - vertex1.x + 0.5;
+    double y2 = Math.floor(vertex1.y) - vertex1.y + 0.5;
+    double z2 = Math.floor(vertex1.z) - vertex1.z + 0.5;
+    // System.out.println(vertex1.subtract(new Vec3d(x2, y2, z2)));
+    
+    overlayTranslations(x, y, z, x2, y2, z2, face, matrixStackTemp, rotation);
+    RenderSystem.multMatrix(matrixStackTemp.peek().getModel());
+
+    Tessellator tessellator = Tessellator.getInstance();
+    BufferBuilder buffer = tessellator.getBuffer();
+
+    buffer.begin(GL11.GL_QUADS, VertexFormats.POSITION);
+
+    buffer.vertex(x, y, z).next();
+    buffer.vertex(x + scale.x, y, z).next();
+    buffer.vertex(x + scale.x, y + scale.y, z).next();
+    buffer.vertex(x, y + scale.y, z).next();
+
+    tessellator.draw();
+
+    RenderSystem.popMatrix();
   }
 
-  public static void color(float r, float g, float b, float a)
+  private static void color(float r, float g, float b, float a)
   {
      RenderSystem.color4f(r, g, b, a);
   }
 
-  private static void overlayTranslations(double x, double y, double z, Direction side, Direction playerFacing, MatrixStack matrixStack)
+  private static void overlayTranslations(double x, double y, double z, double x2, double y2, double z2, Direction side, MatrixStack matrixStack, Quaternion rotation)
   {
-    matrixStack.translate(x, y, z);
+    matrixStack.translate(x + x2, y + y2, z + z2);
+    
+    matrixStack.multiply(rotation);
+    matrixStack.translate(-x2, -y2, -z2);
 
+    matrixStack.multiply(getRotation(side));
+
+    matrixStack.translate(-x, -y, -z);
+  }
+
+  private static Quaternion getRotation(Direction side) {
     switch (side)
     {
       case DOWN:
-        matrixStack.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180f - playerFacing.asRotation()));
-        matrixStack.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(90f));
-        break;
+        return Vector3f.POSITIVE_X.getDegreesQuaternion(90f);
       case UP:
-        matrixStack.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180f - playerFacing.asRotation()));
-        matrixStack.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(-90f));
-        break;
+        return Vector3f.POSITIVE_X.getDegreesQuaternion(-90f);
       case NORTH:
-        matrixStack.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180f));
-        break;
+        return Vector3f.POSITIVE_Y.getDegreesQuaternion(180f);
       case SOUTH:
-        break;
+        return Quaternion.IDENTITY;
       case WEST:
-        matrixStack.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(-90f));
-        break;
+        return Vector3f.POSITIVE_Y.getDegreesQuaternion(-90f);
       case EAST:
-        matrixStack.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(90f));
-        break;
+        return Vector3f.POSITIVE_Y.getDegreesQuaternion(90f);
+      default:
+        return Quaternion.IDENTITY;
     }
-
-    matrixStack.translate(-x, -y, -z + 0.510);
   }
 
   private static void setupBlend()
