@@ -31,8 +31,9 @@ public class LaserRenderer {
   public static void render() {
     MinecraftClient mc = MinecraftClient.getInstance();
     if (mc.player != null) {
+      while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
+      LaserStorageClient.modifying = true;
       for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
-        while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
 
         for (int dir : directions) {
           List<int[]> lasersInDir = laserSet.getValue().stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
@@ -62,6 +63,8 @@ public class LaserRenderer {
           }
         }
       }
+
+      LaserStorageClient.modifying = false;
     }
   }
 

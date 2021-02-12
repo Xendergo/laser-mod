@@ -47,6 +47,8 @@ public class LaserStorageClient {
   }
 
   public static void processLaserData(int[] data) {
+    while (modifying) ; // Wait to stop rendering
+
     modifying = true;
 
     clear();
