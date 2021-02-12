@@ -2,8 +2,6 @@ package net.fabricmc.LaserMod;
 
 import java.util.*;
 
-import org.lwjgl.system.CallbackI.P;
-
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -33,6 +31,8 @@ public class LaserStorage {
   public static HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>> pLasers = new HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>>();
 
   public static HashMap<RegistryKey<World>, HashSet<BlockPos>> toUpdate = new HashMap<RegistryKey<World>, HashSet<BlockPos>>();
+
+  public static boolean useCurrent = false;
   
   public static void setAtPos(World world, BlockPos pos, float p, float λ, Direction dir, boolean start, boolean end) {
     RegistryKey<World> regKey = world.getRegistryKey();
@@ -67,7 +67,76 @@ public class LaserStorage {
     return lasers.get(world.getRegistryKey()).get(posLong).size() > 0;
   }
 
+  public static float laserPowerAtSpot(BlockPos pos, Direction dir, World world) {
+    int dirId = dir.getId();
+
+    ArrayList<int[]> lasersAtPos;
+    
+    if (useCurrent) {
+      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
+    } else {
+      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
+    }
+
+    try {
+      if (lasersAtPos.size() == 0) {
+        return 0;
+      } else {
+        float max = 0;
+        for (int[] laser : lasersAtPos) {
+          if (laser[2] >> 2 == dirId) {
+            float v = Float.intBitsToFloat(laser[0]);
+    
+            if (v > max) {
+              max = v;
+            }
+          }
+        }
+
+        return max;
+      }
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  public static float laserFreqAtSpot(BlockPos pos, Direction dir, World world) {
+    int dirId = dir.getId();
+
+    ArrayList<int[]> lasersAtPos;
+    
+    if (useCurrent) {
+      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
+    } else {
+      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
+    }
+
+    try {
+      if (lasersAtPos.size() == 0) {
+        return 0;
+      } else {
+        float max = 0;
+        float λ = 0;
+        for (int[] laser : lasersAtPos) {
+          if (laser[2] >> 2 == dirId) {
+            float v = Float.intBitsToFloat(laser[0]);
+    
+            if (v > max) {
+              max = v;
+              λ = Float.intBitsToFloat(laser[1]);
+            }
+          }
+        }
+
+        return λ;
+      }
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
   public static void clear() {
+    useCurrent = false;
     for (RegistryKey<World> regKey : lasers.keySet()) {
       // Remove excess memory in pLasers
       LinkedList<Long> toRemove = new LinkedList<Long>();
@@ -109,7 +178,6 @@ public class LaserStorage {
   }
 
   public static boolean checkChanged() {
-    // System.out.println("Comparing");
     Set<RegistryKey<World>> dims = lasers.keySet();
     Set<RegistryKey<World>> pDims = lasers.keySet();
 
@@ -161,14 +229,18 @@ public class LaserStorage {
   }
 
   public static void sendLaserData(MinecraftServer server) {
+    useCurrent = true;
+
     removeUselessEntries();
+
+    System.out.println("oofPrint");
 
     for (RegistryKey<World> regKey : lasers.keySet()) {
       ArrayList<BlockPos> toRemove = new ArrayList<BlockPos>();
       ServerWorld dimension = server.getWorld(regKey);
       for (BlockPos posToUpdate : toUpdate.get(regKey)) {
         if (dimension.getBlockState(posToUpdate).getBlock() instanceof LaserDetector) {
-          dimension.getBlockTickScheduler().schedule(posToUpdate, dimension.getBlockState(posToUpdate).getBlock(), 0);
+          ((LaserDetector)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
         } else {
           toRemove.add(posToUpdate);
         }

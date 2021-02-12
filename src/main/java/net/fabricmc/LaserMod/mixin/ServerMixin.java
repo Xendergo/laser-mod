@@ -20,8 +20,8 @@ public abstract class ServerMixin {
     LaserStorage.clear();
   }
 
-  // If the laser data changed, send the new data to the clients
-  @Inject(at = @At("TAIL"), method = "tick")
+  // If the laser data changed, send the new data to the clients and update the laser detectors
+  @Inject(at = @At("TAIL"), method = "tickWorlds")
   private void tickEnd(CallbackInfo info) {
     boolean changed = LaserStorage.checkChanged();
     if (changed) {

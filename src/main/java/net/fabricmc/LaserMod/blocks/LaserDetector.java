@@ -1,19 +1,17 @@
 package net.fabricmc.LaserMod.blocks;
 
-import java.util.Random;
-
-import net.fabricmc.LaserMod.LaserStorageClient;
+import net.fabricmc.LaserMod.LaserStorage;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 
 public class LaserDetector extends Block {
   public LaserDetector() {
@@ -35,16 +33,27 @@ public class LaserDetector extends Block {
     return true;
   }
 
-  @Override
-  public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-    super.scheduledTick(state, world, pos, random);
-
+  public void laserUpdate(BlockState state, World world, BlockPos pos) {
+    world.setBlockState(pos, (BlockState)state.with(Properties.LIT, LaserStorage.laserPowerAtSpot(pos, state.get(Properties.FACING).getOpposite(), world) != 0), 2);
+    
     world.updateNeighbors(pos, this);
+    
+    world.updateComparators(pos, this);
+  }
 
-    world.setBlockState(pos, (BlockState)state.with(Properties.LIT, LaserStorageClient.laserPowerAtSpot(pos, state.get(Properties.FACING).getOpposite()) != 0), 2);
+  public boolean hasComparatorOutput(BlockState state) {
+    return true;
+  }
+
+  public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    return (int)Math.floor(remap(LaserStorage.laserFreqAtSpot(pos, state.get(Properties.FACING).getOpposite(), world), 0, 16, 0, 15));
   }
 
   public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-    return Math.min((int)Math.ceil(LaserStorageClient.laserPowerAtSpot(pos, state.get(Properties.FACING).getOpposite())), 15);
+    return Math.min((int)Math.ceil(LaserStorage.laserPowerAtSpot(pos, state.get(Properties.FACING).getOpposite(), (World)world)), 15);
+  }
+
+  private static float remap(float v, float min1, float max1, float min2, float max2) {
+    return (v - min1) * (max2 - min2) / (max1 - min1) + min2;
   }
 }
