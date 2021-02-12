@@ -43,16 +43,18 @@ public class Laser extends Block implements BlockEntityProvider {
       int newPower = 0;
   
       for (int i = directions.length-1; i >= 0; i--) {
-        BlockPos neighborPos = pos.offset(directions[i], -1);
-        BlockState blockState = world.getBlockState(neighborPos);
-        int power = world.getEmittedRedstonePower(neighborPos, directions[i].getOpposite());
-  
-        if (Registry.BLOCK.getId(blockState.getBlock()).toString().equals("minecraft:comparator")) {
-          // Set the frequency
-          newFreq = Math.max(newFreq, power);
-        } else {
-          // Set the power
-          newPower = Math.max(newPower, power);
+        if (directions[i] != state.get(Properties.FACING).getOpposite()) {
+          BlockPos neighborPos = pos.offset(directions[i], -1);
+          BlockState blockState = world.getBlockState(neighborPos);
+          int power = world.getEmittedRedstonePower(neighborPos, directions[i].getOpposite());
+    
+          if (Registry.BLOCK.getId(blockState.getBlock()).toString().equals("minecraft:comparator")) {
+            // Set the frequency
+            newFreq = Math.max(newFreq, power);
+          } else {
+            // Set the power
+            newPower = Math.max(newPower, power);
+          }
         }
       }
       

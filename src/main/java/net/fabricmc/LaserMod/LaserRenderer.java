@@ -30,6 +30,7 @@ public class LaserRenderer {
     MinecraftClient mc = MinecraftClient.getInstance();
     if (mc.player != null) {
       for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
+        while (LaserStorageClient.modifying) ;
         for (int[] laser : laserSet.getValue()) {
           drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(laser[2] >> 2), calcualteColor(laser[0], laser[1]), mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
         }
@@ -40,7 +41,12 @@ public class LaserRenderer {
   private static void drawLaser(BlockPos pos, Direction dir, int color, MinecraftClient mc, boolean start, boolean end) {
     if (start && end) return; // If it's both the start and end of a laser, something went terribly wrong
 
-    // System.out.println(Integer.toHexString(color));
+    float a = (float) (color >> 24 & 255) / 255.0F;
+    if (a == 0) return; // Don't bother rendering anything you can't see
+
+    float r = (float) (color >> 16 & 255) / 255.0F;
+    float g = (float) (color >>  8 & 255) / 255.0F;
+    float b = (float) (color & 255) / 255.0F;
 
     // If it's the end of a laser, reverse the direction and draw as if it's the start of a laser
     if (end) {
@@ -54,12 +60,6 @@ public class LaserRenderer {
     RenderSystem.disableTexture();
     
     setupBlend();
-    
-    float a = (float) (color >> 24 & 255) / 255.0F;
-    float r = (float) (color >> 16 & 255) / 255.0F;
-    float g = (float) (color >>  8 & 255) / 255.0F;
-    float b = (float) (color & 255) / 255.0F;
-
     
     color(r, g, b, a);
     

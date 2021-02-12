@@ -2,12 +2,16 @@ package net.fabricmc.LaserMod;
 
 import java.util.*;
 
+import org.lwjgl.system.CallbackI.P;
+
+import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.RegistryKey;
@@ -28,6 +32,8 @@ public class LaserStorage {
   public static HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>> lasers = new HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>>();
   public static HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>> pLasers = new HashMap<RegistryKey<World>, HashMap<Long, ArrayList<int[]>>>();
 
+  public static HashMap<RegistryKey<World>, HashSet<BlockPos>> toUpdate = new HashMap<RegistryKey<World>, HashSet<BlockPos>>();
+  
   public static void setAtPos(World world, BlockPos pos, float p, float λ, Direction dir, boolean start, boolean end) {
     RegistryKey<World> regKey = world.getRegistryKey();
 
@@ -158,12 +164,27 @@ public class LaserStorage {
     removeUselessEntries();
 
     for (RegistryKey<World> regKey : lasers.keySet()) {
+      ArrayList<BlockPos> toRemove = new ArrayList<BlockPos>();
+      ServerWorld dimension = server.getWorld(regKey);
+      for (BlockPos posToUpdate : toUpdate.get(regKey)) {
+        if (dimension.getBlockState(posToUpdate).getBlock() instanceof LaserDetector) {
+          dimension.getBlockTickScheduler().schedule(posToUpdate, dimension.getBlockState(posToUpdate).getBlock(), 0);
+        } else {
+          toRemove.add(posToUpdate);
+        }
+      }
+
+      for (BlockPos posToRemove : toRemove) {
+        toUpdate.get(regKey).remove(posToRemove);
+      }
+
       PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
 
-      for (ServerPlayerEntity player : PlayerLookup.world(server.getWorld(regKey))) {
+      for (ServerPlayerEntity player : PlayerLookup.world(dimension)) {
         ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
       }
     }
+
     System.out.println("Sending data");
   }
 

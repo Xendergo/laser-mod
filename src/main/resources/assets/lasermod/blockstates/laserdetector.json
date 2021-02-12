@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "facing=north,lit=false": {
+      "model": "lasermod:block/laserdetector",
+      "x": 90
+    },
+    "facing=east,lit=false": {
+      "model": "lasermod:block/laserdetector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=south,lit=false": {
+      "model": "lasermod:block/laserdetector",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "lasermod:block/laserdetector",
+      "x": 90,
+      "y": 270
+    },
+    "facing=up,lit=false": {
+      "model": "lasermod:block/laserdetector"
+    },
+    "facing=down,lit=false": {
+      "model": "lasermod:block/laserdetector",
+      "x": 180
+    },
+    "facing=north,lit=true": {
+      "model": "lasermod:block/laserdetector_on",
+      "x": 90
+    },
+    "facing=east,lit=true": {
+      "model": "lasermod:block/laserdetector_on",
+      "x": 90,
+      "y": 90
+    },
+    "facing=south,lit=true": {
+      "model": "lasermod:block/laserdetector_on",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west,lit=true": {
+      "model": "lasermod:block/laserdetector_on",
+      "x": 90,
+      "y": 270
+    },
+    "facing=up,lit=true": {
+      "model": "lasermod:block/laserdetector_on"
+    },
+    "facing=down,lit=true": {
+      "model": "lasermod:block/laserdetector_on",
+      "x": 180
+    }
+  }
+}
