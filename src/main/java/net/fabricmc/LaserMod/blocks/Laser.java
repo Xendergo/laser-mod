@@ -39,7 +39,7 @@ public class Laser extends Block implements BlockEntityProvider {
 
       Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP, Direction.DOWN};
       
-      int newFreq = 0;
+      int newFreq = -1;
       int newPower = 0;
   
       for (int i = directions.length-1; i >= 0; i--) {

@@ -1,18 +1,25 @@
 package net.fabricmc.LaserMod;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 import net.fabricmc.LaserMod.blocks.LaserDetector;
+import net.fabricmc.LaserMod.blocks.LaserEntity;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.TranslatableText;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryKey;
+import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 public class LaserStorage {
@@ -33,6 +40,8 @@ public class LaserStorage {
   public static HashMap<RegistryKey<World>, HashSet<BlockPos>> toUpdate = new HashMap<RegistryKey<World>, HashSet<BlockPos>>();
 
   public static boolean useCurrent = false;
+
+  private static DecimalFormat df = new DecimalFormat("#0.0");
   
   public static void setAtPos(World world, BlockPos pos, float p, float λ, Direction dir, boolean start, boolean end) {
     RegistryKey<World> regKey = world.getRegistryKey();
@@ -269,5 +278,25 @@ public class LaserStorage {
     PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
 
     ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
+  }
+
+  public static void handleNudge(MinecraftServer server, ServerPlayerEntity player, PacketByteBuf buf) {
+    byte toAdjust = buf.readByte();
+    server.execute(() -> {
+      // https://github.com/gnembon/fabric-carpet/blob/0e0a4cc0f21f4a331512c0c005f81f329fabf422/src/main/java/carpet/helpers/Tracer.java#L29
+  
+      Vec3d pos = player.getCameraPosVec(1);
+      Vec3d rotation = player.getRotationVec(1);
+      Vec3d reachEnd = pos.add(rotation.x * 4.5, rotation.y * 4.5, rotation.z * 4.5);
+      HitResult hit = player.world.raycast(new RaycastContext(pos, reachEnd, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, player));
+      
+      BlockEntity targeted = player.world.getBlockEntity(new BlockPos(hit.getPos()));
+  
+      if (targeted instanceof LaserEntity) {
+        LaserEntity laserEntity = ((LaserEntity)targeted);
+        laserEntity.adjustFrequency(toAdjust/10.0F);
+        player.sendMessage(new TranslatableText("state.lasermod.setfrequency", df.format(laserEntity.λ)), false);
+      }
+    });
   }
 }

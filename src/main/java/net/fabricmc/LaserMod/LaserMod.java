@@ -5,12 +5,11 @@ import net.fabricmc.LaserMod.blocks.BeamSplitter;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
-import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
-import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
@@ -29,11 +28,13 @@ public class LaserMod implements ModInitializer {
 	
 	@Override
 	public void onInitialize() {
-		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-			ClientPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.LaserStorage, (client, handler, buf, responseSender) -> {
-				LaserStorageClient.processLaserData(buf.readIntArray());
-			});
-		}
+		ClientPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.LaserStorage, (client, handler, buf, responseSender) -> {
+			LaserStorageClient.processLaserData(buf.readIntArray());
+		});
+		
+		ServerPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.NudgeFrequency, (server, player, handler, buf, responseSender) -> {
+			LaserStorage.handleNudge(server, player, buf);
+		});
 
 		System.out.println("Laser mod initialized, registering blocks");
 
@@ -53,5 +54,9 @@ public class LaserMod implements ModInitializer {
 		Registry.register(Registry.BLOCK, new Identifier("lasermod", "beamsplitter"), BeamSplitter);
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "beamsplitter"), new BlockItem(BeamSplitter, new FabricItemSettings().group(ItemGroup.REDSTONE)));
 		BlockRenderLayerMap.INSTANCE.putBlock(BeamSplitter, RenderLayer.getCutout());
+
+		System.out.println("Laser mod blocks are registered, registering keybinds");
+
+		keybinds.registerKeybinds();
 	}
 }

@@ -3,8 +3,17 @@
   "block.lasermod.laser": "Laser",
   "block.lasermod.laserdetector": "Laser detector",
   "block.lasermod.beamsplitter": "Beam splitter",
+
   "death.lasermod.laser.variation0": "%d was irradiated to death",
   "death.lasermod.laser.variation1": "%d was flamed by a laser",
   "death.lasermod.laser.variation2": "%d was impaled by pure light",
-  "death.lasermod.laser.variation3": "%d died of instant radiation poisining"
+  "death.lasermod.laser.variation3": "%d died of instant radiation poisining",
+
+  "category.lasermod": "Laser mod",
+  "key.lasermod.increase": "Increase wavelength",
+  "key.lasermod.decrease": "Decrease wavelength",
+  "key.lasermod.nudgeup": "Nudge wavelength up",
+  "key.lasermod.nudgedown": "Nudge wavelength down",
+
+  "state.lasermod.setfrequency": "Frequency set to %d"
 }

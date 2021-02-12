@@ -32,7 +32,7 @@ public class LaserEntity extends BlockEntity implements Tickable {
   [14-15): UV
   [15-16): γ rays
   */
-  public float λ = 7;
+  public float λ = 0;
 
   /* Using p for power
   Power can be between 0 & 15 like redstone
@@ -61,8 +61,16 @@ public class LaserEntity extends BlockEntity implements Tickable {
   }
 
   public void updateLaserData(float newΛ, float newP) {
-    λ = remap(newΛ, 0, 15, 0, 16);
+    if (newΛ != -1) {
+      λ = remap(newΛ, 0, 15, 0, 16);
+    }
+
     p = newP;
+  }
+
+  public void adjustFrequency(float amt) {
+    λ += amt;
+    λ = Math.round(Math.min(Math.max(λ, 0), 16)*10)*0.1F;
   }
 
   public void tick() {
