@@ -3,7 +3,9 @@
 package net.fabricmc.LaserMod;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -30,23 +32,48 @@ public class LaserRenderer {
     MinecraftClient mc = MinecraftClient.getInstance();
     if (mc.player != null) {
       for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
-        while (LaserStorageClient.modifying) ;
-        for (int[] laser : laserSet.getValue()) {
-          drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(laser[2] >> 2), calcualteColor(laser[0], laser[1]), mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
+        while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
+
+        for (int dir : directions) {
+          List<int[]> lasersInDir = laserSet.getValue().stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
+          ArrayList<int[]> colorList = new ArrayList<int[]>();
+          for (int[] laser : lasersInDir) {
+            colorList.add(calcualteColor(laser[0], laser[1]));
+          }
+
+          int[] color = new int[] {0, 0, 0, 0};
+
+          for (int[] colorArr : colorList) {
+            color[0] += colorArr[0];
+          }
+
+          color[0] = Math.min(color[0], 255);
+
+          for (int[] colorArr : colorList) {
+            float toMultBy = (float)colorArr[0]/(float)color[0];
+
+            color[1] += colorArr[1] * toMultBy;
+            color[2] += colorArr[2] * toMultBy;
+            color[3] += colorArr[3] * toMultBy;
+          }
+
+          for (int[] laser : lasersInDir) {
+            drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
+          }
         }
       }
     }
   }
 
-  private static void drawLaser(BlockPos pos, Direction dir, int color, MinecraftClient mc, boolean start, boolean end) {
+  private static void drawLaser(BlockPos pos, Direction dir, int[] color, MinecraftClient mc, boolean start, boolean end) {
     if (start && end) return; // If it's both the start and end of a laser, something went terribly wrong
 
-    float a = (float) (color >> 24 & 255) / 255.0F;
+    float a = (float) Math.min(color[0], 255) / 255.0F;
     if (a == 0) return; // Don't bother rendering anything you can't see
 
-    float r = (float) (color >> 16 & 255) / 255.0F;
-    float g = (float) (color >>  8 & 255) / 255.0F;
-    float b = (float) (color & 255) / 255.0F;
+    float r = (float) Math.min(color[1], 255) / 255.0F;
+    float g = (float) Math.min(color[2], 255) / 255.0F;
+    float b = (float) Math.min(color[3], 255) / 255.0F;
 
     // If it's the end of a laser, reverse the direction and draw as if it's the start of a laser
     if (end) {
@@ -162,7 +189,7 @@ public class LaserRenderer {
     RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
   }
 
-  private static int calcualteColor(int powerBits, int λBits) {
+  private static int[] calcualteColor(int powerBits, int λBits) {
     float power = Float.intBitsToFloat(powerBits) / 16;
     float λ = Float.intBitsToFloat(λBits);
 
@@ -205,7 +232,7 @@ public class LaserRenderer {
 
     if (power < 0) power = 0;
 
-    return (int)(a * power) << 24 | r << 16 | g << 8 | b;
+    return new int[] {(int)(a * power), r, g, b};
   }
 
   private static float remap(float v, float min1, float max1, float min2, float max2) {
@@ -256,4 +283,6 @@ public class LaserRenderer {
         return p + (q - p) * (2f/3f - t) * 6f;
     return p;
   }
+
+  private static int[] directions = new int[] {Direction.NORTH.getId(), Direction.SOUTH.getId(), Direction.EAST.getId(), Direction.WEST.getId(), Direction.UP.getId(), Direction.DOWN.getId()};
 }
