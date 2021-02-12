@@ -236,16 +236,18 @@ public class LaserStorage {
     for (RegistryKey<World> regKey : lasers.keySet()) {
       ArrayList<BlockPos> toRemove = new ArrayList<BlockPos>();
       ServerWorld dimension = server.getWorld(regKey);
-      for (BlockPos posToUpdate : toUpdate.get(regKey)) {
-        if (dimension.getBlockState(posToUpdate).getBlock() instanceof LaserDetector) {
-          ((LaserDetector)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
-        } else {
-          toRemove.add(posToUpdate);
+      if (toUpdate.containsKey(regKey)) {
+        for (BlockPos posToUpdate : toUpdate.get(regKey)) {
+          if (dimension.getBlockState(posToUpdate).getBlock() instanceof LaserDetector) {
+            ((LaserDetector)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
+          } else {
+            toRemove.add(posToUpdate);
+          }
         }
-      }
 
-      for (BlockPos posToRemove : toRemove) {
-        toUpdate.get(regKey).remove(posToRemove);
+        for (BlockPos posToRemove : toRemove) {
+          toUpdate.get(regKey).remove(posToRemove);
+        }
       }
 
       PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));

@@ -41,6 +41,10 @@ public class LaserDetector extends Block {
     world.updateComparators(pos, this);
   }
 
+  public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
+    world.setBlockState(pos, (BlockState)state.with(Properties.LIT, LaserStorage.laserPowerAtSpot(pos, state.get(Properties.FACING).getOpposite(), world) != 0), 2);
+  }
+
   public boolean hasComparatorOutput(BlockState state) {
     return true;
   }
