@@ -1,6 +1,7 @@
 package net.fabricmc.LaserMod;
 
 import net.fabricmc.LaserMod.blocks.Lens;
+import net.fabricmc.LaserMod.blocks.BeamSplitter;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
@@ -22,15 +23,12 @@ public class LaserMod implements ModInitializer {
 	public static final Block Lens = new Lens();
 	public static final Block Laser = new Laser();
 	public static final Block LaserDetector = new LaserDetector();
+	public static final Block BeamSplitter = new BeamSplitter();
 
 	public static BlockEntityType<LaserEntity> LaserEntityData;
 	
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
 		if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
 			ClientPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.LaserStorage, (client, handler, buf, responseSender) -> {
 				LaserStorageClient.processLaserData(buf.readIntArray());
@@ -51,5 +49,9 @@ public class LaserMod implements ModInitializer {
 		Registry.register(Registry.BLOCK, new Identifier("lasermod", "laserdetector"), LaserDetector);
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "laserdetector"), new BlockItem(LaserDetector, new FabricItemSettings().group(ItemGroup.REDSTONE)));
 		BlockRenderLayerMap.INSTANCE.putBlock(LaserDetector, RenderLayer.getCutout());
+
+		Registry.register(Registry.BLOCK, new Identifier("lasermod", "beamsplitter"), BeamSplitter);
+		Registry.register(Registry.ITEM, new Identifier("lasermod", "beamsplitter"), new BlockItem(BeamSplitter, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+		BlockRenderLayerMap.INSTANCE.putBlock(BeamSplitter, RenderLayer.getCutout());
 	}
 }

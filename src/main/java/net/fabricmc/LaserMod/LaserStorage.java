@@ -233,8 +233,6 @@ public class LaserStorage {
 
     removeUselessEntries();
 
-    System.out.println("oofPrint");
-
     for (RegistryKey<World> regKey : lasers.keySet()) {
       ArrayList<BlockPos> toRemove = new ArrayList<BlockPos>();
       ServerWorld dimension = server.getWorld(regKey);
@@ -256,8 +254,6 @@ public class LaserStorage {
         ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
       }
     }
-
-    System.out.println("Sending data");
   }
 
   public static void sendLaserData(ServerPlayerEntity player) {
@@ -270,7 +266,6 @@ public class LaserStorage {
 
     PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
 
-    System.out.println("Sending to player");
     ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
   }
 }

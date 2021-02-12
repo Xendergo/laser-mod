@@ -127,6 +127,10 @@ public class LaserEntity extends BlockEntity implements Tickable {
           world.removeBlock(pos, false);
           power -= blastResistance;
         }
+      } else if (blockState.getBlock() instanceof BeamSplitter) {
+        power *= 0.5;
+
+        marchLaser(pos, blockState.get(Properties.FACING), power);
       }
       
       blockState = world.getBlockState(pos); // Recalculate blockState in case the laser changed anything

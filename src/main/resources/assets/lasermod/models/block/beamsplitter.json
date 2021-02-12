@@ -1,0 +1,8 @@
+{
+  "parent": "lasermod:block/capped",
+  "textures": {
+    "bottom": "lasermod:block/beamsplitter_bottom",
+    "top": "lasermod:block/beamsplitter_top",
+    "side": "lasermod:block/beamsplitter_side"
+  }
+}
