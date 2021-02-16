@@ -1,0 +1,37 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "#center",
+    "center": "lasermod:block/fiberoptic_center"
+  },
+  "elements": [{
+    "from": [4, 4, 4],
+    "to": [12, 12, 12],
+    "faces": {
+      "down": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      },
+      "up": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      },
+      "north": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      },
+      "south": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      },
+      "east": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      },
+      "west": {
+        "uv": [0, 0, 16, 16],
+        "texture": "#center"
+      }
+    }
+  }]
+}

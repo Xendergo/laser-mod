@@ -1,11 +1,13 @@
 package net.fabricmc.LaserMod;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import net.minecraft.util.math.BlockPos;
 
 public class LaserStorageClient {
   public static HashMap<Long, ArrayList<int[]>> lasers = new HashMap<Long, ArrayList<int[]>>();
+  public static List<LaserData> laserList = new LinkedList<LaserData>();
 
   public static boolean modifying = false;
 
@@ -71,6 +73,8 @@ public class LaserStorageClient {
 
       lasers.put(key, toAdd);
     }
+
+    laserList = lasers.entrySet().stream().map(x -> new LaserData(BlockPos.fromLong(x.getKey()), x.getValue())).collect(Collectors.toList());
 
     modifying = false;
   }

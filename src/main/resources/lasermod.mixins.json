@@ -8,7 +8,8 @@
     "ServerMixin",
     "PlayerMixin",
     "PlayerEntityMixin",
-    "RenderMixin"
+    "RenderMixin",
+    "SpawnRestrictionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

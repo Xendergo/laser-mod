@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -16,6 +17,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.RegistryKey;
@@ -69,11 +71,36 @@ public class LaserStorage {
   public static boolean laserAtPos(World world, BlockPos pos) {
     long posLong = pos.asLong();
 
-    if (!lasers.get(world.getRegistryKey()).containsKey(posLong)) {
+    if (!pLasers.get(world.getRegistryKey()).containsKey(posLong)) {
       return false;
     }
 
-    return lasers.get(world.getRegistryKey()).get(posLong).size() > 0;
+    return pLasers.get(world.getRegistryKey()).get(posLong).size() > 0;
+  }
+  
+  public static int lightAtPos(BlockPos pos, World world) {
+    ArrayList<int[]> lasersAtPos;
+    
+    if (useCurrent) {
+      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
+    } else {
+      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
+    }
+
+    if (lasersAtPos.size() == 0) {
+      return 0;
+    } else {
+      float max = 0;
+      for (int[] laser : lasersAtPos) {
+        float v = Float.intBitsToFloat(laser[0]);
+
+        if (v > max) {
+          max = v;
+        }
+      }
+
+      return Math.min((int)Math.ceil(max), 15);
+    }
   }
 
   public static float laserPowerAtSpot(BlockPos pos, Direction dir, World world) {
@@ -290,7 +317,7 @@ public class LaserStorage {
       Vec3d reachEnd = pos.add(rotation.x * 4.5, rotation.y * 4.5, rotation.z * 4.5);
       HitResult hit = player.world.raycast(new RaycastContext(pos, reachEnd, RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, player));
       
-      BlockEntity targeted = player.world.getBlockEntity(new BlockPos(hit.getPos()));
+      BlockEntity targeted = player.world.getBlockEntity(new BlockPos(hit.getPos().add(rotation.multiply(0.01))));
   
       if (targeted instanceof LaserEntity) {
         LaserEntity laserEntity = ((LaserEntity)targeted);
@@ -298,5 +325,31 @@ public class LaserStorage {
         player.sendMessage(new TranslatableText("state.lasermod.setfrequency", df.format(laserEntity.λ)), false);
       }
     });
+  }
+
+  public static boolean checkEntityIntersection(EntityType<?> entity, BlockPos pos, ServerWorld world) {
+    Box boundingBox = entity.createSimpleBoundingBox(pos.getX(), pos.getY(), pos.getZ());
+
+    int minX = (int)Math.floor(boundingBox.minX);
+    int maxX = (int)Math.ceil(boundingBox.maxX);
+    int minY = (int)Math.floor(boundingBox.minY);
+    int maxY = (int)Math.ceil(boundingBox.maxY);
+    int minZ = (int)Math.floor(boundingBox.minZ);
+    int maxZ = (int)Math.ceil(boundingBox.maxZ);
+
+    RegistryKey<World> regKey = world.getRegistryKey();
+
+    for (int i = minX; i < maxX; i++) {
+      for (int j = minY; j < maxY; j++) {
+        for (int k = minZ; k < maxZ; k++) {
+          List<int[]> lasersAtPos = (useCurrent ? lasers : pLasers).get(regKey).get(new BlockPos(i, j, k).asLong());
+          if (lasersAtPos != null && lasersAtPos.size() != 0) {
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 }

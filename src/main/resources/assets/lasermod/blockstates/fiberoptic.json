@@ -1,0 +1,114 @@
+{
+  "multipart": [{
+      "apply": {
+        "model": "lasermod:block/fiberoptic_center"
+      }
+    },
+    {
+      "when": {
+        "input": "up"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "input": "down"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in",
+        "x": -90
+      }
+    },
+    {
+      "when": {
+        "input": "north"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "input": "south"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in"
+      }
+    },
+    {
+      "when": {
+        "input": "east"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in",
+        "y": -90
+      }
+    },
+    {
+      "when": {
+        "input": "west"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "output": "up"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "output": "down"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out",
+        "x": -90
+      }
+    },
+    {
+      "when": {
+        "output": "north"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "output": "south"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out"
+      }
+    },
+    {
+      "when": {
+        "output": "east"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out",
+        "y": -90
+      }
+    },
+    {
+      "when": {
+        "output": "west"
+      },
+      "apply": {
+        "model": "lasermod:block/fiberoptic_out",
+        "y": 90
+      }
+    }
+  ]
+}

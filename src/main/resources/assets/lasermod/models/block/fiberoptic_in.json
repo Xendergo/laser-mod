@@ -1,0 +1,7 @@
+{
+  "parent": "lasermod:block/fiberoptic_io",
+  "textures": {
+    "side": "lasermod:block/fiberoptic_input",
+    "cap": "lasermod:block/fiberoptic_cap"
+  }
+}

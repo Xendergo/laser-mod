@@ -4,7 +4,6 @@ package net.fabricmc.LaserMod;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.mojang.blaze3d.platform.GlStateManager;
@@ -23,6 +22,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Quaternion;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
 
 public class LaserRenderer {
   public static double laserWidth = 0.25;
@@ -33,10 +33,12 @@ public class LaserRenderer {
     if (mc.player != null) {
       while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
       LaserStorageClient.modifying = true;
-      for (Map.Entry<Long, ArrayList<int[]>> laserSet : LaserStorageClient.lasers.entrySet()) {
+      Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+      Vec3i cameraPosInt = new Vec3i(cameraPos.x, cameraPos.y, cameraPos.z);
+      for (LaserData laserSet : LaserStorageClient.laserList.stream().sorted((a, b) -> b.pos.getManhattanDistance(cameraPosInt) - a.pos.getManhattanDistance(cameraPosInt)).collect(Collectors.toList())) {
 
         for (int dir : directions) {
-          List<int[]> lasersInDir = laserSet.getValue().stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
+          List<int[]> lasersInDir = laserSet.lasers.stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
           ArrayList<int[]> colorList = new ArrayList<int[]>();
           for (int[] laser : lasersInDir) {
             colorList.add(calcualteColor(laser[0], laser[1]));
@@ -59,7 +61,7 @@ public class LaserRenderer {
           }
 
           for (int[] laser : lasersInDir) {
-            drawLaser(BlockPos.fromLong(laserSet.getKey()), Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2);
+            drawLaser(laserSet.pos, Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2, cameraPos);
           }
         }
       }
@@ -68,7 +70,7 @@ public class LaserRenderer {
     }
   }
 
-  private static void drawLaser(BlockPos pos, Direction dir, int[] color, MinecraftClient mc, boolean start, boolean end) {
+  private static void drawLaser(BlockPos pos, Direction dir, int[] color, MinecraftClient mc, boolean start, boolean end, Vec3d cameraPos) {
     if (start && end) return; // If it's both the start and end of a laser, something went terribly wrong
 
     float a = (float) Math.min(color[0], 255) / 255.0F;
@@ -92,8 +94,6 @@ public class LaserRenderer {
     setupBlend();
     
     color(r, g, b, a);
-    
-    Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
 
     Quaternion rotation = getRotation(dir);
     

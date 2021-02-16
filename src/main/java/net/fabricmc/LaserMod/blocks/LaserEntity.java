@@ -106,11 +106,13 @@ public class LaserEntity extends BlockEntity implements Tickable {
       }
 
       if (blockState.getBlock() instanceof Lens) {
+        power--;
+
         Direction facing = blockState.get(Properties.FACING);
         if (dir.equals(facing.getOpposite())) {
           for (int i = 0; i < 6; i++) {
             if (!directions[i].equals(facing)) {
-              marchLaser(pos, directions[i], power/5);
+              marchLaser(pos, directions[i], power * 0.2F);
             }
           }
         } else {
@@ -136,6 +138,7 @@ public class LaserEntity extends BlockEntity implements Tickable {
           power -= blastResistance;
         }
       } else if (blockState.getBlock() instanceof BeamSplitter) {
+        power -= 1;
         power *= 0.5;
 
         marchLaser(pos, blockState.get(Properties.FACING), power);
