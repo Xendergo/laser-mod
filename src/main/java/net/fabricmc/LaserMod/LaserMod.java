@@ -2,6 +2,7 @@ package net.fabricmc.LaserMod;
 
 import net.fabricmc.LaserMod.blocks.Lens;
 import net.fabricmc.LaserMod.blocks.BeamSplitter;
+import net.fabricmc.LaserMod.blocks.Coupler;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
@@ -25,6 +26,7 @@ public class LaserMod implements ModInitializer {
 	public static final Block LaserDetector = new LaserDetector();
 	public static final Block BeamSplitter = new BeamSplitter();
 	public static final Block FiberOpticCable = new FiberOpticCable();
+	public static final Block Coupler = new Coupler();
 
 	public static BlockEntityType<LaserEntity> LaserEntityData;
 	
@@ -59,6 +61,10 @@ public class LaserMod implements ModInitializer {
 
 		Registry.register(Registry.BLOCK, new Identifier("lasermod", "fiberopticcable"), FiberOpticCable);
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "fiberopticcable"), new BlockItem(FiberOpticCable, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+
+		Registry.register(Registry.BLOCK, new Identifier("lasermod", "coupler"), Coupler);
+		Registry.register(Registry.ITEM, new Identifier("lasermod", "coupler"), new BlockItem(Coupler, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+		BlockRenderLayerMap.INSTANCE.putBlock(Coupler, RenderLayer.getCutout());
 
 		System.out.println("Laser mod blocks are registered, registering keybinds");
 

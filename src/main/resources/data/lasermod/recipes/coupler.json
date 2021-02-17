@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "BBB",
+    "LTG",
+    "BBB"
+  ],
+  "key": {
+    "B": {
+      "item": "minecraft:blackstone"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "L": {
+      "item": "lasermod:lens"
+    },
+    "T": {
+      "item": "minecraft:glass_bottle"
+    }
+  },
+  "result": {
+    "item": "lasermod:coupler"
+  }
+}

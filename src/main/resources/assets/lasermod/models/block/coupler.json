@@ -1,0 +1,8 @@
+{
+  "parent": "lasermod:block/capped",
+  "textures": {
+    "bottom": "lasermod:block/coupler_bottom",
+    "top": "lasermod:block/coupler_top",
+    "side": "lasermod:block/coupler_side"
+  }
+}
