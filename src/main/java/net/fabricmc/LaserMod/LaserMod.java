@@ -5,7 +5,7 @@ import net.fabricmc.LaserMod.blocks.BeamSplitter;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
-import net.fabricmc.LaserMod.blocks.FiberOptic;
+import net.fabricmc.LaserMod.blocks.FiberOpticCable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -24,7 +24,7 @@ public class LaserMod implements ModInitializer {
 	public static final Block Laser = new Laser();
 	public static final Block LaserDetector = new LaserDetector();
 	public static final Block BeamSplitter = new BeamSplitter();
-	public static final Block FiberOptic = new FiberOptic();
+	public static final Block FiberOpticCable = new FiberOpticCable();
 
 	public static BlockEntityType<LaserEntity> LaserEntityData;
 	
@@ -57,8 +57,8 @@ public class LaserMod implements ModInitializer {
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "beamsplitter"), new BlockItem(BeamSplitter, new FabricItemSettings().group(ItemGroup.REDSTONE)));
 		BlockRenderLayerMap.INSTANCE.putBlock(BeamSplitter, RenderLayer.getCutout());
 
-		Registry.register(Registry.BLOCK, new Identifier("lasermod", "fiberoptic"), FiberOptic);
-		Registry.register(Registry.ITEM, new Identifier("lasermod", "fiberoptic"), new BlockItem(FiberOptic, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+		Registry.register(Registry.BLOCK, new Identifier("lasermod", "fiberopticcable"), FiberOpticCable);
+		Registry.register(Registry.ITEM, new Identifier("lasermod", "fiberopticcable"), new BlockItem(FiberOpticCable, new FabricItemSettings().group(ItemGroup.REDSTONE)));
 
 		System.out.println("Laser mod blocks are registered, registering keybinds");
 

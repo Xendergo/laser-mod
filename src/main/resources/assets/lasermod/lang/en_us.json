@@ -3,7 +3,7 @@
   "block.lasermod.laser": "Laser",
   "block.lasermod.laserdetector": "Laser Detector",
   "block.lasermod.beamsplitter": "Beam Splitter",
-  "block.lasermod.fiberoptic": "Fiber Optic",
+  "block.lasermod.fiberopticcable": "Fiber Optic Cable",
 
   "death.lasermod.laser.variation0": "%d was irradiated to death",
   "death.lasermod.laser.variation1": "%d was flamed by a laser",
