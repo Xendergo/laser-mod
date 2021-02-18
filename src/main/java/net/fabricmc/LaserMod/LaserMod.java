@@ -3,6 +3,7 @@ package net.fabricmc.LaserMod;
 import net.fabricmc.LaserMod.blocks.Lens;
 import net.fabricmc.LaserMod.blocks.BeamSplitter;
 import net.fabricmc.LaserMod.blocks.Coupler;
+import net.fabricmc.LaserMod.blocks.CouplerEntity;
 import net.fabricmc.LaserMod.blocks.Laser;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
@@ -29,6 +30,7 @@ public class LaserMod implements ModInitializer {
 	public static final Block Coupler = new Coupler();
 
 	public static BlockEntityType<LaserEntity> LaserEntityData;
+	public static BlockEntityType<CouplerEntity> CouplerEntityData;
 	
 	@Override
 	public void onInitialize() {
@@ -64,6 +66,7 @@ public class LaserMod implements ModInitializer {
 
 		Registry.register(Registry.BLOCK, new Identifier("lasermod", "coupler"), Coupler);
 		Registry.register(Registry.ITEM, new Identifier("lasermod", "coupler"), new BlockItem(Coupler, new FabricItemSettings().group(ItemGroup.REDSTONE)));
+		CouplerEntityData = Registry.register(Registry.BLOCK_ENTITY_TYPE, "lasermod:coupler", BlockEntityType.Builder.create(CouplerEntity::new, Coupler).build(null));
 		BlockRenderLayerMap.INSTANCE.putBlock(Coupler, RenderLayer.getCutout());
 
 		System.out.println("Laser mod blocks are registered, registering keybinds");

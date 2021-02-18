@@ -3,11 +3,13 @@ package net.fabricmc.LaserMod;
 import java.text.DecimalFormat;
 import java.util.*;
 
+import net.fabricmc.LaserMod.blocks.Coupler;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.network.PacketByteBuf;
@@ -79,13 +81,7 @@ public class LaserStorage {
   }
   
   public static int lightAtPos(BlockPos pos, World world) {
-    ArrayList<int[]> lasersAtPos;
-    
-    if (useCurrent) {
-      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
-    } else {
-      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
-    }
+    List<int[]> lasersAtPos = lasersAtPos(world, pos);
 
     if (lasersAtPos.size() == 0) {
       return 0;
@@ -103,16 +99,25 @@ public class LaserStorage {
     }
   }
 
+  public static List<int[]> lasersAtPos(World world, BlockPos pos) {
+    List<int[]> out;
+    if (useCurrent) {
+      out = lasers.get(world.getRegistryKey()).get(pos.asLong());
+    } else {
+      out = pLasers.get(world.getRegistryKey()).get(pos.asLong());
+    }
+
+    if (out == null) {
+      return new ArrayList<int[]>();
+    } else {
+      return out;
+    }
+  }
+
   public static float laserPowerAtSpot(BlockPos pos, Direction dir, World world) {
     int dirId = dir.getId();
 
-    ArrayList<int[]> lasersAtPos;
-    
-    if (useCurrent) {
-      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
-    } else {
-      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
-    }
+    List<int[]> lasersAtPos = lasersAtPos(world, pos);
 
     try {
       if (lasersAtPos.size() == 0) {
@@ -139,13 +144,7 @@ public class LaserStorage {
   public static float laserFreqAtSpot(BlockPos pos, Direction dir, World world) {
     int dirId = dir.getId();
 
-    ArrayList<int[]> lasersAtPos;
-    
-    if (useCurrent) {
-      lasersAtPos = lasers.get(world.getRegistryKey()).get(pos.asLong());
-    } else {
-      lasersAtPos = pLasers.get(world.getRegistryKey()).get(pos.asLong());
-    }
+    List<int[]> lasersAtPos = lasersAtPos(world, pos);
 
     try {
       if (lasersAtPos.size() == 0) {
@@ -274,8 +273,11 @@ public class LaserStorage {
       ServerWorld dimension = server.getWorld(regKey);
       if (toUpdate.containsKey(regKey)) {
         for (BlockPos posToUpdate : toUpdate.get(regKey)) {
-          if (dimension.getBlockState(posToUpdate).getBlock() instanceof LaserDetector) {
+          Block block = dimension.getBlockState(posToUpdate).getBlock();
+          if (block instanceof LaserDetector) {
             ((LaserDetector)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
+          } else if (block instanceof Coupler) {
+            ((Coupler)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
           } else {
             toRemove.add(posToUpdate);
           }
