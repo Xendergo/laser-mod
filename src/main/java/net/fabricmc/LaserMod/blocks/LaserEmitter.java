@@ -67,6 +67,8 @@ public class LaserEmitter extends BlockEntity {
         }
         break;
       } else if (blockState.getBlock() instanceof LaserDetector || blockState.getBlock() instanceof Coupler) {
+        power--;
+        
         if (!LaserStorage.toUpdate.containsKey(world.getRegistryKey())) {
           LaserStorage.toUpdate.put(world.getRegistryKey(), new HashSet<BlockPos>());
         }

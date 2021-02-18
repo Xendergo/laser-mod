@@ -9,9 +9,12 @@ import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
 
 public class CouplerEntity extends LaserEmitter implements Tickable {
   public List<float[]> lasersOut = new LinkedList<float[]>();
+  public BlockPos endPos = null;
+
   public CouplerEntity() {
     super(LaserMod.CouplerEntityData);
   }
@@ -25,10 +28,16 @@ public class CouplerEntity extends LaserEmitter implements Tickable {
     for (int i = 0; i < data.length; i+=2) {
       lasersOut.add(new float[] {Float.intBitsToFloat(data[i]), Float.intBitsToFloat(data[i+1])});
     }
+
+    if (tag.contains("endpos")) {
+      endPos = BlockPos.fromLong(tag.getLong("endpos"));
+    }
   }
 
   @Override
   public CompoundTag toTag(CompoundTag tag) {
+    super.toTag(tag);
+    
     List<Integer> out = new ArrayList<Integer>(lasersOut.size()*2);
 
     for (float[] laser : lasersOut) {
@@ -38,6 +47,10 @@ public class CouplerEntity extends LaserEmitter implements Tickable {
 
     tag.putIntArray("data", out);
 
+    if (endPos != null) {
+      tag.putLong("endpos", endPos.asLong());
+    }
+
     return tag;
   }
 
@@ -46,5 +59,15 @@ public class CouplerEntity extends LaserEmitter implements Tickable {
     for (float[] laser : lasersOut) {
       marchLaser(pos, world.getBlockState(pos).get(Properties.FACING).getOpposite(), laser[0], laser[1]);
     }
+  }
+
+  public void setEndPos(BlockPos pos) {
+    markDirty();
+
+    if (pos == null) {
+      lasersOut.clear();
+    }
+
+    endPos = pos;
   }
 }
