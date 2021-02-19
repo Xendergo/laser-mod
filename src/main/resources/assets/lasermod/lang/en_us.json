@@ -17,5 +17,7 @@
   "key.lasermod.nudgeup": "Nudge wavelength up",
   "key.lasermod.nudgedown": "Nudge wavelength down",
 
-  "state.lasermod.setfrequency": "Frequency set to %d"
+  "state.lasermod.setfrequency": "Frequency set to %d",
+
+  "subtitles.lasermod.laser": "Lasers buzz"
 }

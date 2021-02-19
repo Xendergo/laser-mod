@@ -1,0 +1,10 @@
+{
+  "lasersound": {
+    "subtitle": "subtitles.lasermod.laser",
+    "sounds": [{
+      "name": "lasermod:lasersound",
+      "preload": true,
+      "volume": 0.015
+    }]
+  }
+}

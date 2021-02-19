@@ -11,12 +11,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import org.lwjgl.opengl.GL11;
 
+import net.fabricmc.LaserMod.Sounds.LaserSound;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Quaternion;
@@ -30,12 +34,21 @@ public class LaserRenderer {
 
   public static void render() {
     MinecraftClient mc = MinecraftClient.getInstance();
+    SoundManager soundManager = mc.getSoundManager();
+
     if (mc.player != null) {
       while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
+
       LaserStorageClient.modifying = true;
       Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
       Vec3i cameraPosInt = new Vec3i(cameraPos.x, cameraPos.y, cameraPos.z);
-      for (LaserData laserSet : LaserStorageClient.laserList.stream().sorted((a, b) -> b.pos.getManhattanDistance(cameraPosInt) - a.pos.getManhattanDistance(cameraPosInt)).collect(Collectors.toList())) {
+      List<LaserData> sorted = LaserStorageClient.laserList.stream().filter(x -> x.lasers.size() > 0).sorted((a, b) -> b.pos.getManhattanDistance(cameraPosInt) - a.pos.getManhattanDistance(cameraPosInt)).collect(Collectors.toList());
+      
+      if (!mc.isPaused() && sorted.size() > 0) {
+        soundManager.play(new PositionedSoundInstance(LaserSound.LaserSound, SoundCategory.AMBIENT, 1, 1, sorted.get(sorted.size()-1).pos));
+      }
+
+      for (LaserData laserSet : sorted) {
 
         for (int dir : directions) {
           List<int[]> lasersInDir = laserSet.lasers.stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
@@ -61,6 +74,7 @@ public class LaserRenderer {
           }
 
           for (int[] laser : lasersInDir) {
+
             drawLaser(laserSet.pos, Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2, cameraPos);
           }
         }
