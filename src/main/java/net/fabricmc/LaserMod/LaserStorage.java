@@ -344,8 +344,12 @@ public class LaserStorage {
     for (int i = minX; i < maxX; i++) {
       for (int j = minY; j < maxY; j++) {
         for (int k = minZ; k < maxZ; k++) {
-          List<int[]> lasersAtPos = (useCurrent ? lasers : pLasers).get(regKey).get(new BlockPos(i, j, k).asLong());
-          if (lasersAtPos != null && lasersAtPos.size() != 0) {
+          try {
+            List<int[]> lasersAtPos = (useCurrent ? lasers : pLasers).get(regKey).get(new BlockPos(i, j, k).asLong());
+            if (lasersAtPos != null && lasersAtPos.size() != 0) {
+              return true;
+            }
+          } catch (Exception e) { // If there's a null pointer exception, that means there can't be any lasers there
             return true;
           }
         }
