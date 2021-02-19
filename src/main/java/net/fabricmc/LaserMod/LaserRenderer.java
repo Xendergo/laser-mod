@@ -81,6 +81,10 @@ public class LaserRenderer {
       }
 
       LaserStorageClient.modifying = false;
+
+      if (LaserStorageClient.callBackLaserData) {
+        LaserStorageClient.processLaserDataCallback();
+      }
     }
   }
 

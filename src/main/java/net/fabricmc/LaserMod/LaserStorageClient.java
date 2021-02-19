@@ -10,6 +10,9 @@ public class LaserStorageClient {
   public static List<LaserData> laserList = new LinkedList<LaserData>();
 
   public static boolean modifying = false;
+  public static boolean callBackLaserData = false;
+
+  private static int[] packet;
 
   public static ArrayList<int[]> getAtPos(BlockPos pos) {
     if (lasers.containsKey(pos.asLong())) {
@@ -49,24 +52,34 @@ public class LaserStorageClient {
   }
 
   public static void processLaserData(int[] data) {
-    while (modifying) ; // Wait to stop rendering
+    packet = data;
 
+    if (modifying) {
+      callBackLaserData = true;
+    } else {
+      processLaserDataCallback();
+    }
+  }
+
+  public static void processLaserDataCallback() {
+    callBackLaserData = false;
+    
     modifying = true;
 
     clear();
 
     int i = 0;
 
-    while (i < data.length) {
-      long key = ((long)data[i] << 32 >>> 32) | (((long)data[i+1]) << 32);
+    while (i < packet.length) {
+      long key = ((long)packet[i] << 32 >>> 32) | (((long)packet[i+1]) << 32);
       i += 2;
-      int length = data[i];
+      int length = packet[i];
       i++;
 
       ArrayList<int[]> toAdd = new ArrayList<int[]>();
 
       for (int j = 0; j < length; j++) {
-        toAdd.add(new int[] {data[i], data[i+1], data[i+2]});
+        toAdd.add(new int[] {packet[i], packet[i+1], packet[i+2]});
 
         i+=3;
       }
