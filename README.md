@@ -2,7 +2,7 @@
 
 ## Lasers
 
-Lasers have two properties, power and frequency. The power changes the strength of the laser and is represented by the laser's opacity, and is a number between 0 & 15. The frequency is what gives lasers cool properties, and is between 0 & 16. Entities can also block the laser's path. If two lasers are in the same block, the colors will blend.
+Lasers have two properties, power and frequency. The power changes the strength of the laser and is represented by the laser's opacity, and is a number between 0 & 15. The frequency is what gives lasers cool properties, and is between 0 & 16. Entities can also block the laser's path. A laser's power goes down by 0.25 every block. If two lasers are in the same block, the colors will blend.
 
 These are the properties of different frequencies:
 ### 0-1, microwaves
@@ -20,6 +20,7 @@ Totally transparent like infrared, but does damage to living entities
 ### 15-16, Gamma rays
 Rendered as white, does a lot of damage to living entities, and breaks blocks
 
+### Other stuff
 When a laser goes into a lens, beam splitter, or coupler, the power is reduced by 1. (this is for technical reasons, otherwise you could easily make infinite loops of lasers and crash your game)
 
 ## Blocks
