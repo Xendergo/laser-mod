@@ -13,6 +13,8 @@ public class LaserStorageClient {
   public static boolean callBackLaserData = false;
 
   private static int[] packet;
+  private static long[] packetRemoved;
+  private static boolean packetClear;
 
   public static ArrayList<int[]> getAtPos(BlockPos pos) {
     if (lasers.containsKey(pos.asLong())) {
@@ -51,8 +53,10 @@ public class LaserStorageClient {
     }
   }
 
-  public static void processLaserData(int[] data) {
+  public static void processLaserData(int[] data, long[] removed, boolean clear) {
     packet = data;
+    packetRemoved = removed;
+    packetClear = clear;
 
     if (modifying) {
       callBackLaserData = true;
@@ -66,7 +70,9 @@ public class LaserStorageClient {
     
     modifying = true;
 
-    clear();
+    if (packetClear) {
+      clear();
+    }
 
     int i = 0;
 
@@ -85,6 +91,10 @@ public class LaserStorageClient {
       }
 
       lasers.put(key, toAdd);
+    }
+
+    for (long pos : packetRemoved) {
+      lasers.remove(pos);
     }
 
     laserList = lasers.entrySet().stream().map(x -> new LaserData(BlockPos.fromLong(x.getKey()), x.getValue())).collect(Collectors.toList());

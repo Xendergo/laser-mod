@@ -212,6 +212,18 @@ public class LaserStorage {
     }
   }
 
+  public static boolean lasersEqual(ArrayList<int[]> l1, ArrayList<int[]> l2) {
+    if (l1.size() == l2.size()) {
+      for (int i = l1.size()-1; i >= 0; i--) {
+        if (!Arrays.equals(l1.get(i), l2.get(i))) return false;
+      }
+    } else {
+      return false;
+    }
+
+    return true;
+  }
+
   public static boolean checkChanged() {
     Set<RegistryKey<World>> dims = lasers.keySet();
     Set<RegistryKey<World>> pDims = lasers.keySet();
@@ -222,15 +234,7 @@ public class LaserStorage {
         Set<Long> pKeys = pLasers.get(regKey).keySet();
         if (keys.containsAll(pKeys) && pKeys.containsAll(keys)) {
           for (long key : keys) {
-            ArrayList<int[]> list = lasers.get(regKey).get(key);
-            ArrayList<int[]> pList = pLasers.get(regKey).get(key);
-            if (list.size() == pList.size()) {
-              for (int i = list.size()-1; i >= 0; i--) {
-                if (!Arrays.equals(list.get(i), pList.get(i))) return true;
-              }
-            } else {
-              return true;
-            }
+            if (!lasersEqual(lasers.get(regKey).get(key), pLasers.get(regKey).get(key))) return true;
           }
         } else {
           return true;
@@ -288,7 +292,21 @@ public class LaserStorage {
         }
       }
 
-      PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
+      HashMap<Long, ArrayList<int[]>> newLasers = new HashMap<Long, ArrayList<int[]>>(lasers.get(regKey));
+
+      for (long key : pLasers.get(regKey).keySet()) {
+        if (newLasers.containsKey(key) && lasersEqual(newLasers.get(key), pLasers.get(regKey).get(key))) {
+          newLasers.remove(key);
+        }
+      }
+
+      PacketByteBuf buf = generatePacketBuf(newLasers);
+
+      Set<Long> removedLasers = pLasers.get(regKey).keySet();
+      removedLasers.removeAll(lasers.get(regKey).keySet());
+      buf.writeLongArray(removedLasers.stream().mapToLong(v -> v).toArray());
+
+      buf.writeBoolean(false);
 
       for (ServerPlayerEntity player : PlayerLookup.world(dimension)) {
         ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
@@ -305,6 +323,9 @@ public class LaserStorage {
     }
 
     PacketByteBuf buf = generatePacketBuf(lasers.get(regKey));
+
+    buf.writeLongArray(new long[0]);
+    buf.writeBoolean(true);
 
     ServerPlayNetworking.send(player, NetworkingIdentifiers.LaserStorage, buf);
   }

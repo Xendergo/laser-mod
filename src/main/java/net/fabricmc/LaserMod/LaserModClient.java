@@ -12,7 +12,7 @@ public class LaserModClient implements ClientModInitializer{
 	@Override
 	public void onInitializeClient() {
 		ClientPlayNetworking.registerGlobalReceiver(NetworkingIdentifiers.LaserStorage, (client, handler, buf, responseSender) -> {
-			LaserStorageClient.processLaserData(buf.readIntArray());
+			LaserStorageClient.processLaserData(buf.readIntArray(), buf.readLongArray(null), buf.readBoolean());
 		});
 
     BlockRenderLayerMap.INSTANCE.putBlock(LaserMod.Lens, RenderLayer.getCutout());
