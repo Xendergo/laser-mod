@@ -147,7 +147,6 @@ public class LaserRenderer {
     double x2 = Math.floor(vertex1.x) - vertex1.x + 0.5;
     double y2 = Math.floor(vertex1.y) - vertex1.y + 0.5;
     double z2 = Math.floor(vertex1.z) - vertex1.z + 0.5;
-    // System.out.println(vertex1.subtract(new Vec3d(x2, y2, z2)));
     
     overlayTranslations(x, y, z, x2, y2, z2, face, matrixStackTemp, rotation);
     RenderSystem.multMatrix(matrixStackTemp.peek().getModel());
