@@ -28,7 +28,7 @@ public class LaserEmitter extends BlockEntity {
     super(data);
   }
 
-  public void marchLaser(BlockPos pos, Direction dir, float power, float λ) {
+  public int marchLaser(BlockPos pos, Direction dir, float power, float λ) {
     BlockState blockState = world.getBlockState(pos);
     power += 0.25;
     boolean start = true;
@@ -52,27 +52,31 @@ public class LaserEmitter extends BlockEntity {
         break;
       }
 
+      if (blockState.getBlock() instanceof LaserUpdatable) {
+        if (!LaserStorage.toUpdate.containsKey(world.getRegistryKey())) {
+          LaserStorage.toUpdate.put(world.getRegistryKey(), new HashSet<BlockPos>());
+        }
+        LaserStorage.toUpdate.get(world.getRegistryKey()).add(pos);
+      }
+
       if (blockState.getBlock() instanceof Lens) {
         power--;
 
         Direction facing = blockState.get(Properties.FACING);
         if (dir.equals(facing.getOpposite())) {
+          int max = 0;
           for (int i = 0; i < 6; i++) {
             if (!directions[i].equals(facing)) {
-              marchLaser(pos, directions[i], power * 0.2F, λ);
+              max = Math.max(marchLaser(pos, directions[i], power * 0.2F, λ), max);
             }
           }
+
+          return max;
         } else {
-          marchLaser(pos, facing, power, λ);
+          return marchLaser(pos, facing, power, λ);
         }
-        break;
       } else if (blockState.getBlock() instanceof LaserDetector || blockState.getBlock() instanceof Coupler) {
         power--;
-        
-        if (!LaserStorage.toUpdate.containsKey(world.getRegistryKey())) {
-          LaserStorage.toUpdate.put(world.getRegistryKey(), new HashSet<BlockPos>());
-        }
-        LaserStorage.toUpdate.get(world.getRegistryKey()).add(pos);
 
         break;
       } else if (λ < 1 && random.nextInt(100) == 0 && blockState.getBlock() instanceof AirBlock) {
@@ -90,13 +94,15 @@ public class LaserEmitter extends BlockEntity {
         power -= 1;
         power *= 0.5;
 
-        marchLaser(pos, blockState.get(Properties.FACING), power, λ);
+        return Math.max(marchLaser(pos, blockState.get(Properties.FACING), power, λ), marchLaser(pos, dir, power, λ));
       }
       
       blockState = world.getBlockState(pos); // Recalculate blockState in case the laser changed anything
     }
 
     LaserStorage.setAtPos(world, pos, power, λ, dir, false, true);
+
+    return (int)power;
   }
 
   protected static float remap(float v, float min1, float max1, float min2, float max2) {

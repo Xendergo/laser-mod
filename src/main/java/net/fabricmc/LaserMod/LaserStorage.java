@@ -6,6 +6,7 @@ import java.util.*;
 import net.fabricmc.LaserMod.blocks.Coupler;
 import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
+import net.fabricmc.LaserMod.blocks.LaserUpdatable;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -278,10 +279,8 @@ public class LaserStorage {
       if (toUpdate.containsKey(regKey)) {
         for (BlockPos posToUpdate : toUpdate.get(regKey)) {
           Block block = dimension.getBlockState(posToUpdate).getBlock();
-          if (block instanceof LaserDetector) {
-            ((LaserDetector)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
-          } else if (block instanceof Coupler) {
-            ((Coupler)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
+          if (block instanceof LaserUpdatable) {
+            ((LaserUpdatable)dimension.getBlockState(posToUpdate).getBlock()).laserUpdate(dimension.getBlockState(posToUpdate), dimension, posToUpdate);
           } else {
             toRemove.add(posToUpdate);
           }

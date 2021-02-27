@@ -14,7 +14,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 
-public class Laser extends Block implements BlockEntityProvider {
+public class Laser extends Block implements BlockEntityProvider, LaserUpdatable {
   public Laser() {
     super(FabricBlockSettings.of(Material.METAL).hardness(3.0f).resistance(1200.0f).nonOpaque().luminance((state) -> (Boolean)state.get(Properties.LIT) ? 15 : 0).solidBlock((a, b, c) -> false));
     setDefaultState(this.stateManager.getDefaultState().with(Properties.FACING, Direction.NORTH).with(Properties.LIT, false));  
@@ -48,7 +48,7 @@ public class Laser extends Block implements BlockEntityProvider {
           BlockState blockState = world.getBlockState(neighborPos);
           int power = world.getEmittedRedstonePower(neighborPos, directions[i].getOpposite());
     
-          if (Registry.BLOCK.getId(blockState.getBlock()).toString().equals("minecraft:comparator")) {
+          if (Registry.BLOCK.getId(blockState.getBlock()).toString().equals("minecraft:comparator") && blockState.get(Properties.HORIZONTAL_FACING) == directions[i].getOpposite()) {
             // Set the frequency
             newFreq = Math.max(newFreq, power);
           } else {
@@ -62,6 +62,19 @@ public class Laser extends Block implements BlockEntityProvider {
       world.setBlockState(pos, (BlockState)state.with(Properties.LIT, newPower != 0), 2);
       laserEntity.updateLaserData(newFreq, newPower);
     }
+  }
+
+  public void laserUpdate(BlockState state, World world, BlockPos pos) {
+    world.updateComparators(pos, this);
+  }
+
+  public boolean hasComparatorOutput(BlockState state) {
+    return true;
+  }
+
+  @Override
+  public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    return ((LaserEntity)world.getBlockEntity(pos)).comparatorPower;
   }
 
   @Override

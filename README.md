@@ -26,7 +26,7 @@ When a laser goes into a lens, beam splitter, or coupler, the power is reduced b
 ## Blocks
 
 ### Laser
-Outputs a laser with a specific frequency and power. Power is determined by the redstone power level inputted to the block. You can set the frequency by using your arrow keys while looking at the block, or by pointing a comparator directly into the block. (Through a block won't work)
+Outputs a laser with a specific frequency and power. Power is determined by the redstone power level inputted to the block. You can set the frequency by using your arrow keys while looking at the block, or by pointing a comparator directly into the block. (Through a block won't work) Laser blocks also emit a comparator output depending on the power of the laser when it was blocked
 
 ### Lens
 Redirects a laser in the direction the lens is facing, pointing a laser into the output redirects it in all other directions.

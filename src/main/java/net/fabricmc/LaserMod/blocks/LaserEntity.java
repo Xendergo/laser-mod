@@ -1,10 +1,14 @@
 package net.fabricmc.LaserMod.blocks;
 
+import java.util.HashSet;
+
 import net.fabricmc.LaserMod.LaserMod;
+import net.fabricmc.LaserMod.LaserStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
 
 public class LaserEntity extends LaserEmitter implements Tickable {
   /* Using λ for wavelength
@@ -20,6 +24,8 @@ public class LaserEntity extends LaserEmitter implements Tickable {
   Power can be between 0 & 15 like redstone
   */
   public float p = 0;
+
+  public int comparatorPower = 0;
 
   public LaserEntity() {
     super(LaserMod.LaserEntityData);
@@ -59,8 +65,15 @@ public class LaserEntity extends LaserEmitter implements Tickable {
   public void tick() {
     if (world.isClient()) return;
 
-    if (p != 0) {
-      marchLaser(this.pos, this.world.getBlockState(this.pos).get(Properties.FACING), p, λ);
+    if (!LaserStorage.toUpdate.containsKey(world.getRegistryKey())) {
+      LaserStorage.toUpdate.put(world.getRegistryKey(), new HashSet<BlockPos>());
+    }
+    LaserStorage.toUpdate.get(world.getRegistryKey()).add(pos);
+
+    if (p == 0) {
+      comparatorPower = 0;
+    } else {
+      comparatorPower = marchLaser(this.pos, this.world.getBlockState(this.pos).get(Properties.FACING), p, λ);
     }
   }
 }
