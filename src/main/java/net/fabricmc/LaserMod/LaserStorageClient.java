@@ -9,9 +9,6 @@ public class LaserStorageClient {
   public static HashMap<Long, ArrayList<int[]>> lasers = new HashMap<Long, ArrayList<int[]>>();
   public static List<LaserData> laserList = new LinkedList<LaserData>();
 
-  public static boolean modifying = false;
-  public static boolean callBackLaserData = false;
-
   private static int[] packet;
   private static long[] packetRemoved;
   private static boolean packetClear;
@@ -58,47 +55,39 @@ public class LaserStorageClient {
     packetRemoved = removed;
     packetClear = clear;
 
-    if (modifying) {
-      callBackLaserData = true;
-    } else {
-      processLaserDataCallback();
-    }
+    processLaserDataCallback();
   }
 
   public static void processLaserDataCallback() {
-    callBackLaserData = false;
-    
-    modifying = true;
-
-    if (packetClear) {
-      clear();
-    }
-
-    int i = 0;
-
-    while (i < packet.length) {
-      long key = ((long)packet[i] << 32 >>> 32) | (((long)packet[i+1]) << 32);
-      i += 2;
-      int length = packet[i];
-      i++;
-
-      ArrayList<int[]> toAdd = new ArrayList<int[]>();
-
-      for (int j = 0; j < length; j++) {
-        toAdd.add(new int[] {packet[i], packet[i+1], packet[i+2]});
-
-        i+=3;
+    synchronized (laserList) {    
+      if (packetClear) {
+        clear();
       }
-
-      lasers.put(key, toAdd);
+  
+      int i = 0;
+  
+      while (i < packet.length) {
+        long key = ((long)packet[i] << 32 >>> 32) | (((long)packet[i+1]) << 32);
+        i += 2;
+        int length = packet[i];
+        i++;
+  
+        ArrayList<int[]> toAdd = new ArrayList<int[]>();
+  
+        for (int j = 0; j < length; j++) {
+          toAdd.add(new int[] {packet[i], packet[i+1], packet[i+2]});
+  
+          i+=3;
+        }
+  
+        lasers.put(key, toAdd);
+      }
+  
+      for (long pos : packetRemoved) {
+        lasers.remove(pos);
+      }
+  
+      laserList = lasers.entrySet().stream().map(x -> new LaserData(BlockPos.fromLong(x.getKey()), x.getValue())).collect(Collectors.toList());
     }
-
-    for (long pos : packetRemoved) {
-      lasers.remove(pos);
-    }
-
-    laserList = lasers.entrySet().stream().map(x -> new LaserData(BlockPos.fromLong(x.getKey()), x.getValue())).collect(Collectors.toList());
-
-    modifying = false;
   }
 }

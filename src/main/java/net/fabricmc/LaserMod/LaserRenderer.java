@@ -37,53 +37,46 @@ public class LaserRenderer {
     SoundManager soundManager = mc.getSoundManager();
 
     if (mc.player != null) {
-      while (LaserStorageClient.modifying) ; // Wait for new laser data to finish being written
-
-      LaserStorageClient.modifying = true;
-      Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
-      Vec3i cameraPosInt = new Vec3i(cameraPos.x, cameraPos.y, cameraPos.z);
-      List<LaserData> sorted = LaserStorageClient.laserList.stream().filter(x -> x.lasers.size() > 0).sorted((a, b) -> b.pos.getManhattanDistance(cameraPosInt) - a.pos.getManhattanDistance(cameraPosInt)).collect(Collectors.toList());
-      
-      if (!mc.isPaused() && sorted.size() > 0) {
-        soundManager.play(new PositionedSoundInstance(LaserSound.LaserSound, SoundCategory.AMBIENT, 1, 1, sorted.get(sorted.size()-1).pos));
-      }
-
-      for (LaserData laserSet : sorted) {
-
-        for (int dir : directions) {
-          List<int[]> lasersInDir = laserSet.lasers.stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
-          ArrayList<int[]> colorList = new ArrayList<int[]>();
-          for (int[] laser : lasersInDir) {
-            colorList.add(calcualteColor(laser[0], laser[1]));
-          }
-
-          int[] color = new int[] {0, 0, 0, 0};
-
-          for (int[] colorArr : colorList) {
-            color[0] += colorArr[0];
-          }
-
-          color[0] = Math.min(color[0], 255);
-
-          for (int[] colorArr : colorList) {
-            float toMultBy = (float)colorArr[0]/(float)color[0];
-
-            color[1] += colorArr[1] * toMultBy;
-            color[2] += colorArr[2] * toMultBy;
-            color[3] += colorArr[3] * toMultBy;
-          }
-
-          for (int[] laser : lasersInDir) {
-
-            drawLaser(laserSet.pos, Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2, cameraPos);
+      synchronized (LaserStorageClient.laserList) {
+        Vec3d cameraPos = mc.gameRenderer.getCamera().getPos();
+        Vec3i cameraPosInt = new Vec3i(cameraPos.x, cameraPos.y, cameraPos.z);
+        List<LaserData> sorted = LaserStorageClient.laserList.stream().filter(x -> x.lasers.size() > 0).sorted((a, b) -> b.pos.getManhattanDistance(cameraPosInt) - a.pos.getManhattanDistance(cameraPosInt)).collect(Collectors.toList());
+        
+        if (!mc.isPaused() && sorted.size() > 0) {
+          soundManager.play(new PositionedSoundInstance(LaserSound.LaserSound, SoundCategory.AMBIENT, 1, 1, sorted.get(sorted.size()-1).pos));
+        }
+  
+        for (LaserData laserSet : sorted) {
+  
+          for (int dir : directions) {
+            List<int[]> lasersInDir = laserSet.lasers.stream().filter((v) -> v[2] >> 2 == dir).collect(Collectors.toList());
+            ArrayList<int[]> colorList = new ArrayList<int[]>();
+            for (int[] laser : lasersInDir) {
+              colorList.add(calcualteColor(laser[0], laser[1]));
+            }
+  
+            int[] color = new int[] {0, 0, 0, 0};
+  
+            for (int[] colorArr : colorList) {
+              color[0] += colorArr[0];
+            }
+  
+            color[0] = Math.min(color[0], 255);
+  
+            for (int[] colorArr : colorList) {
+              float toMultBy = (float)colorArr[0]/(float)color[0];
+  
+              color[1] += colorArr[1] * toMultBy;
+              color[2] += colorArr[2] * toMultBy;
+              color[3] += colorArr[3] * toMultBy;
+            }
+  
+            for (int[] laser : lasersInDir) {
+  
+              drawLaser(laserSet.pos, Direction.byId(dir), color, mc, (laser[2] & 1) == 1, (laser[2] & 2) == 2, cameraPos);
+            }
           }
         }
-      }
-
-      LaserStorageClient.modifying = false;
-
-      if (LaserStorageClient.callBackLaserData) {
-        LaserStorageClient.processLaserDataCallback();
       }
     }
   }

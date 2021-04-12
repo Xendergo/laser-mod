@@ -3,8 +3,6 @@ package net.fabricmc.LaserMod;
 import java.text.DecimalFormat;
 import java.util.*;
 
-import net.fabricmc.LaserMod.blocks.Coupler;
-import net.fabricmc.LaserMod.blocks.LaserDetector;
 import net.fabricmc.LaserMod.blocks.LaserEntity;
 import net.fabricmc.LaserMod.blocks.LaserUpdatable;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
