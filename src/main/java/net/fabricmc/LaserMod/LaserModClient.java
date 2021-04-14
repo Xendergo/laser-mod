@@ -4,6 +4,7 @@ import net.fabricmc.LaserMod.Sounds.LaserSound;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.registry.Registry;
 
@@ -27,5 +28,7 @@ public class LaserModClient implements ClientModInitializer{
 		System.out.println("Laser mod keybinds are registered, registering sounds");
 
 		Registry.register(Registry.SOUND_EVENT, LaserSound.LaserSoundID, LaserSound.LaserSound);
+
+		WorldRenderEvents.BEFORE_ENTITIES.register(new LaserRenderer());
 	}
 }

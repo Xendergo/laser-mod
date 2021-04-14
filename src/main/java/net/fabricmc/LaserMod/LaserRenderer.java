@@ -12,6 +12,8 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.lwjgl.opengl.GL11;
 
 import net.fabricmc.LaserMod.Sounds.LaserSound;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BeforeEntities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -28,13 +30,19 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-public class LaserRenderer {
+public class LaserRenderer implements BeforeEntities {
   public static double laserWidth = 0.25;
   private static double laserDist = (1 - laserWidth) / 2;
 
-  public static void render() {
+  public void beforeEntities(WorldRenderContext ctx) {
+    RenderSystem.pushMatrix();
+    RenderSystem.multMatrix(ctx.matrixStack().peek().getModel());
+
     MinecraftClient mc = MinecraftClient.getInstance();
     SoundManager soundManager = mc.getSoundManager();
+
+    GlStateManager.enableDepthTest();
+    GlStateManager.depthMask(false);
 
     if (mc.player != null) {
       synchronized (LaserStorageClient.laserList) {
@@ -79,6 +87,10 @@ public class LaserRenderer {
         }
       }
     }
+
+    GlStateManager.depthMask(true);
+    GlStateManager.disableDepthTest();
+    RenderSystem.popMatrix();
   }
 
   private static void drawLaser(BlockPos pos, Direction dir, int[] color, MinecraftClient mc, boolean start, boolean end, Vec3d cameraPos) {
@@ -97,12 +109,9 @@ public class LaserRenderer {
       dir = dir.getOpposite();
     }
 
-    RenderSystem.depthMask(false);
     RenderSystem.disableLighting();
-    RenderSystem.disableCull();
     RenderSystem.disableTexture();
-    
-    setupBlend();
+    RenderSystem.enableBlend();
     
     color(r, g, b, a);
 
@@ -123,9 +132,8 @@ public class LaserRenderer {
     }
 
     RenderSystem.enableTexture();
+    RenderSystem.enableLighting();
     RenderSystem.disableBlend();
-    RenderSystem.enableCull();
-    RenderSystem.depthMask(true);
   }
   
   private static void drawRect(Vec3d vertex1, Vec2f scale, Direction face, Vec3d cameraPos, Quaternion rotation) {
@@ -161,7 +169,7 @@ public class LaserRenderer {
 
   private static void color(float r, float g, float b, float a)
   {
-     RenderSystem.color4f(r, g, b, a);
+    RenderSystem.color4f(r, g, b, a);
   }
 
   private static void overlayTranslations(double x, double y, double z, double x2, double y2, double z2, Direction side, MatrixStack matrixStack, Quaternion rotation)
@@ -194,12 +202,6 @@ public class LaserRenderer {
       default:
         return Quaternion.IDENTITY;
     }
-  }
-
-  private static void setupBlend()
-  {
-    RenderSystem.enableBlend();
-    RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
   }
 
   private static int[] calcualteColor(int powerBits, int λBits) {
