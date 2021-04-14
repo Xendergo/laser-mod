@@ -29,6 +29,6 @@ public class LaserModClient implements ClientModInitializer{
 
 		Registry.register(Registry.SOUND_EVENT, LaserSound.LaserSoundID, LaserSound.LaserSound);
 
-		WorldRenderEvents.BEFORE_ENTITIES.register(new LaserRenderer());
+		WorldRenderEvents.AFTER_TRANSLUCENT.register(new LaserRenderer());
 	}
 }

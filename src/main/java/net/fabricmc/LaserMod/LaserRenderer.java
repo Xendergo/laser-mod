@@ -13,6 +13,7 @@ import org.lwjgl.opengl.GL11;
 
 import net.fabricmc.LaserMod.Sounds.LaserSound;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AfterTranslucent;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BeforeEntities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
@@ -30,11 +31,11 @@ import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-public class LaserRenderer implements BeforeEntities {
+public class LaserRenderer implements AfterTranslucent {
   public static double laserWidth = 0.25;
   private static double laserDist = (1 - laserWidth) / 2;
 
-  public void beforeEntities(WorldRenderContext ctx) {
+  public void afterTranslucent(WorldRenderContext ctx) {
     RenderSystem.pushMatrix();
     RenderSystem.multMatrix(ctx.matrixStack().peek().getModel());
 
@@ -43,6 +44,7 @@ public class LaserRenderer implements BeforeEntities {
 
     GlStateManager.enableDepthTest();
     GlStateManager.depthMask(false);
+    GlStateManager.disableAlphaTest();
 
     if (mc.player != null) {
       synchronized (LaserStorageClient.laserList) {
@@ -90,6 +92,8 @@ public class LaserRenderer implements BeforeEntities {
 
     GlStateManager.depthMask(true);
     GlStateManager.disableDepthTest();
+    GlStateManager.enableAlphaTest();
+
     RenderSystem.popMatrix();
   }
 
@@ -112,6 +116,7 @@ public class LaserRenderer implements BeforeEntities {
     RenderSystem.disableLighting();
     RenderSystem.disableTexture();
     RenderSystem.enableBlend();
+    RenderSystem.disableCull();
     
     color(r, g, b, a);
 
@@ -131,6 +136,7 @@ public class LaserRenderer implements BeforeEntities {
       drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() - laserDist + 1, pos.getZ()), new Vec2f((float)laserWidth, 1F), Direction.DOWN, cameraPos, rotation);
     }
 
+    RenderSystem.enableCull();
     RenderSystem.enableTexture();
     RenderSystem.enableLighting();
     RenderSystem.disableBlend();
