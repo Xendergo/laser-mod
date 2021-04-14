@@ -14,7 +14,6 @@ import org.lwjgl.opengl.GL11;
 import net.fabricmc.LaserMod.Sounds.LaserSound;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AfterTranslucent;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.BeforeEntities;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
@@ -45,6 +44,11 @@ public class LaserRenderer implements AfterTranslucent {
     GlStateManager.enableDepthTest();
     GlStateManager.depthMask(false);
     GlStateManager.disableAlphaTest();
+
+    RenderSystem.disableLighting();
+    RenderSystem.disableTexture();
+    RenderSystem.enableBlend();
+    RenderSystem.disableCull();
 
     if (mc.player != null) {
       synchronized (LaserStorageClient.laserList) {
@@ -90,6 +94,11 @@ public class LaserRenderer implements AfterTranslucent {
       }
     }
 
+    RenderSystem.enableCull();
+    RenderSystem.enableTexture();
+    RenderSystem.enableLighting();
+    RenderSystem.disableBlend();
+
     GlStateManager.depthMask(true);
     GlStateManager.disableDepthTest();
     GlStateManager.enableAlphaTest();
@@ -112,11 +121,6 @@ public class LaserRenderer implements AfterTranslucent {
       start = true;
       dir = dir.getOpposite();
     }
-
-    RenderSystem.disableLighting();
-    RenderSystem.disableTexture();
-    RenderSystem.enableBlend();
-    RenderSystem.disableCull();
     
     color(r, g, b, a);
 
@@ -135,11 +139,6 @@ public class LaserRenderer implements AfterTranslucent {
       drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() + laserDist, pos.getZ()), new Vec2f((float)laserWidth, 1F), Direction.DOWN, cameraPos, rotation);
       drawRect(new Vec3d(pos.getX() + laserDist, pos.getY() - laserDist + 1, pos.getZ()), new Vec2f((float)laserWidth, 1F), Direction.DOWN, cameraPos, rotation);
     }
-
-    RenderSystem.enableCull();
-    RenderSystem.enableTexture();
-    RenderSystem.enableLighting();
-    RenderSystem.disableBlend();
   }
   
   private static void drawRect(Vec3d vertex1, Vec2f scale, Direction face, Vec3d cameraPos, Quaternion rotation) {
